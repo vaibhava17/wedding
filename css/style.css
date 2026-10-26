@@ -29,8 +29,6 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; background: var(--sindoor-deep); }
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
 body {
   margin: 0;
   font-family: var(--body);
@@ -211,8 +209,7 @@ html[data-lang="en"] .name { line-height: 1.02; font-size: clamp(3.2rem, 15vw, 7
 .names-mid { display: flex; align-items: center; gap: 12px; margin: -2px 0 2px; }
 .knot { width: clamp(80px, 22vw, 130px); height: auto; overflow: visible; }
 .sang { font-family: var(--serif); font-size: clamp(1.4rem, 5vw, 2rem); color: var(--haldi); }
-.hero-date { font-family: var(--display); font-size: clamp(1.3rem, 5vw, 2rem); color: var(--kagaz); margin-bottom: 4px; }
-.hero-place { font-size: clamp(1rem, 3.6vw, 1.2rem); color: rgb(255 247 234 / .85); margin-bottom: 26px; }
+.hero-date { font-family: var(--display); font-size: clamp(1.3rem, 5vw, 2rem); color: var(--kagaz); margin-bottom: 26px; }
 .countdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 420px; margin: 0 auto; }
 .countdown div {
   padding: 12px 4px 8px; border-radius: 18px;

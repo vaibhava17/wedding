@@ -155,13 +155,7 @@ export function initFloral(canvas, { reducedMotion = false } = {}) {
     pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = now;
   }, { passive: true });
   addEventListener('scroll', () => { scrollY = window.scrollY; }, { passive: true });
-  function enableGyro() {
-    const handler = (e) => { if (e.gamma != null) gyro = THREE.MathUtils.clamp(e.gamma / 30, -1.5, 1.5); };
-    const DOE = window.DeviceOrientationEvent;
-    if (DOE && typeof DOE.requestPermission === 'function') {
-      DOE.requestPermission().then((s) => { if (s === 'granted') addEventListener('deviceorientation', handler); }).catch(() => {});
-    } else if (DOE) addEventListener('deviceorientation', handler);
-  }
+
 
   // ---------- resize ----------
   function resize() {
@@ -295,7 +289,7 @@ export function initFloral(canvas, { reducedMotion = false } = {}) {
 
   let garlandOn = true;
   const api = {
-    burst, shower, enableGyro,
+    burst, shower,
     setAmbient(n) { ambient = reducedMotion ? 0 : n; },
     gust(v) { wind += v; },
     tick(dt) {

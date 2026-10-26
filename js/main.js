@@ -1,6 +1,5 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger.js';
-import Lenis from 'lenis';
 import { setLang, initialLang, lang, onLang, t } from './i18n.js';
 import { initFloral } from './floral.js';
 import { groomOnHorse, bride, dholi, trumpeter, haveli, kid } from './illustrations.js';
@@ -10,8 +9,12 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 document.documentElement.classList.add('js');
+// always start at the top behind the doors (iOS restores old scroll when it reloads a background tab)
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-window.scrollTo(0, 0);
+const toTop = () => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; };
+toTop();
+addEventListener('load', toTop);
+addEventListener('pageshow', (e) => { if (e.persisted && !document.getElementById('gate').hidden) toTop(); });
 
 const WEDDING = new Date('2026-12-10T11:00:00+05:30');
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -87,14 +90,7 @@ $('#langBtn').addEventListener('click', () => setLang(lang() === 'hi' ? 'en' : '
 onLang(() => { applyGuest(); updateClock(lastHour, true); fitPatrika(); ScrollTrigger.refresh(); });
 
 // ---------- smooth scroll ----------
-let lenis = null;
-if (!reducedMotion) {
-  lenis = new Lenis({ duration: 1.1, smoothWheel: true, syncTouch: true, syncTouchLerp: 0.09, virtualScroll: (d) => pager(d) });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
-  lenis.stop();
-}
+// native scrolling (smoothest on phones)
 
 // ---------- 3D marigolds ----------
 let floral = null;
@@ -128,7 +124,7 @@ let opened = false;
 function openGate() {
   if (opened) return;
   opened = true;
-  floral?.enableGyro();
+  toTop();
   setMusic(true);
   gate.classList.add('is-open');
   if (floral) {
@@ -140,8 +136,8 @@ function openGate() {
   heroIntro();
   setTimeout(() => {
     gate.hidden = true;
+    toTop();
     document.body.classList.remove('is-locked');
-    lenis?.start();
     ScrollTrigger.refresh();
     fitPatrika();
   }, reducedMotion ? 30 : 1250);
@@ -157,7 +153,7 @@ function drawPaths(svg, dur = 1.6, delay = 0) {
   });
 }
 // hero entrance: everything waits hidden behind the doors, then plays as they part
-const HERO_PARTS = ['.hero-sun', '.hero-kicker', '.name-groom', '.name-bride', '.sang', '.hero-date', '.hero-place', '.countdown > div', '.btn-std', '.scroll-cue'];
+const HERO_PARTS = ['.hero-sun', '.hero-kicker', '.name-groom', '.name-bride', '.sang', '.hero-date', '.countdown > div', '.btn-std', '.scroll-cue'];
 if (!reducedMotion) {
   gsap.set(HERO_PARTS, { opacity: 0 });
   $$('.knot path').forEach((p) => { const L = p.getTotalLength(); gsap.set(p, { strokeDasharray: L, strokeDashoffset: L }); });
@@ -171,7 +167,7 @@ function heroIntro() {
     .fromTo('.name-bride', { opacity: 0, x: 90, filter: 'blur(12px)' }, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 1.1, ease: 'power4.out' }, 0.45)
     .add(() => drawPaths($('.knot'), 1.2), 0.7)
     .fromTo('.sang', { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2.4)' }, 1.0)
-    .fromTo(['.hero-date', '.hero-place'], { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out' }, 1.05)
+    .fromTo('.hero-date', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out' }, 1.05)
     .fromTo('.countdown > div', { opacity: 0, rotationX: -90, transformPerspective: 500, y: 10 }, { opacity: 1, rotationX: 0, y: 0, duration: 0.7, stagger: 0.09, ease: 'back.out(1.7)' }, 1.25)
     .fromTo('.btn-std', { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2.2)' }, 1.6)
     .fromTo('.scroll-cue', { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.9);
@@ -360,44 +356,6 @@ if (!reducedMotion) {
 } else {
   setDay(1);
   eventsEl.forEach((ev) => ev.classList.add('is-active'));
-}
-
-// ---------- pager: one gesture = one page (hero, invitation, each event, venue, ...) ----------
-const EVENT_STOPS = [11.05, 12.9, 14.3, 16.1, 17.4, 18.35].map((hr) => (hr - H0) / (H1 - H0));
-let paging = false, swallowUntil = 0;
-function snapPoints() {
-  const max = document.documentElement.scrollHeight - innerHeight;
-  const top = (id) => $(id).getBoundingClientRect().top + window.scrollY;
-  const pts = [0, top('#invite')];
-  if (journeyST) { const span = journeyST.end - journeyST.start; [0, ...EVENT_STOPS, 1].forEach((s) => pts.push(journeyST.start + s * span)); }
-  pts.push(top('#venue'), top('#kid'), top('#family'));
-  if (finaleST) { const span = finaleST.end - finaleST.start; pts.push(finaleST.start, finaleST.start + span * 0.5, finaleST.end); }
-  pts.push(max);
-  return [...new Set(pts.map((p) => Math.round(Math.min(max, Math.max(0, p)))))].sort((a, b) => a - b);
-}
-function pager({ deltaY, event }) {
-  if (!opened || !lenis) return true;
-  const now = performance.now();
-  if (paging || now < swallowUntil) {
-    if (event.cancelable) event.preventDefault();
-    if (!paging) swallowUntil = now + 180; // keep eating trackpad inertia until it stops
-    return false;
-  }
-  if (event.type === 'touchstart' || event.type === 'touchend' || Math.abs(deltaY) < 3) return true;
-  const y = lenis.scroll, d = Math.sign(deltaY);
-  const pts = snapPoints();
-  const next = d > 0 ? pts.find((p) => p > y + 6) : [...pts].reverse().find((p) => p < y - 6);
-  if (next === undefined || Math.abs(next - y) > innerHeight * 1.12) return true; // tall content: scroll freely
-  if (event.cancelable) event.preventDefault();
-  paging = true;
-  const dist = Math.abs(next - y) / innerHeight;
-  lenis.scrollTo(next, {
-    duration: 0.75 + Math.min(0.5, dist * 0.35), lock: true, force: true,
-    easing: (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
-    onComplete: () => { paging = false; swallowUntil = performance.now() + 260; },
-  });
-  setTimeout(() => { if (paging) { paging = false; swallowUntil = performance.now() + 200; } }, 1600);
-  return false;
 }
 
 // ---------- kid's handwritten note ----------
