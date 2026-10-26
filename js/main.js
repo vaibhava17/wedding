@@ -254,6 +254,11 @@ const sunEl = $('.sun');
 const eventsEl = $$('.event');
 const jBaraat = $('#jBaraat'), jBride = $('#jBride'), jLights = $('#jLights'), journey = $('.journey');
 const H0 = 10.5, H1 = 18.7;
+// cached sizes: reading layout inside the per-frame update would force a reflow every frame
+const SZ = { baraat: 0, bride: 0, W: innerWidth, H: innerHeight };
+function measureJourney() { SZ.baraat = jBaraat.offsetWidth; SZ.bride = jBride.offsetWidth; SZ.W = innerWidth; SZ.H = innerHeight; }
+measureJourney();
+addEventListener('load', measureJourney);
 const KEYS = [
   { h: 10.5, top: '#7cc4ff', bot: '#ffe0a6', line: '#7a1530', line2: '#5c0f26', win: '#ffe7b0', core: '#fff1b0', edge: '#ffb000', cloud: 0.85 },
   { h: 12.5, top: '#3d9bff', bot: '#bfe8ff', line: '#8a1a3a', line2: '#6a1430', win: '#ffe7b0', core: '#fffbe0', edge: '#ffd040', cloud: 0.9 },
@@ -284,7 +289,7 @@ function updateClock(h, force = false) {
 
 // baraat route: home (left) → venue (right) for jaimala → back home with the bride at dusk
 function baraatX(h, W, bw) {
-  const brideW = jBride.offsetWidth || bw * 0.3;
+  const brideW = SZ.bride || bw * 0.3;
   const home = W < 700 ? 4 : W * 0.03;
   const venue = W < 700 ? W - bw - brideW * 0.75 : Math.max(home, W * 0.6 - bw * 0.4);
   if (h < 11.6) return home;
@@ -308,7 +313,7 @@ function setDay(p) {
   sunEl.style.setProperty('--sun-edge', mix(A.edge, B.edge, k));
   set('--stars', smooth(17.8, 18.6, h).toFixed(3));
 
-  const W = innerWidth, Hh = innerHeight, narrow = W < 900;
+  const W = SZ.W, Hh = SZ.H, narrow = W < 900;
   const u = clamp01((h - 10.2) / (18.2 - 10.2));
   const x = W * (0.1 + u * 0.8);
   const y = (narrow ? Hh * (0.5 - Math.sin(u * Math.PI) * 0.3) : Hh * (0.66 - Math.sin(u * Math.PI) * 0.5)) + smooth(17.4, 18.3, h) * Hh * 0.3;
@@ -318,14 +323,14 @@ function setDay(p) {
   jLights.classList.toggle('on', h > 17.5);
 
   // procession
-  const bw = jBaraat.offsetWidth || W * 0.4;
+  const bw = SZ.baraat || W * 0.4;
   const bx = baraatX(h, W, bw);
   const returning = h >= 16.75;
   jBaraat.style.setProperty('--bx', `${bx}px`);
   jBaraat.style.setProperty('--dir', returning ? '-1' : '1');
   jBaraat.style.opacity = String(smooth(10.55, 10.95, h));
   // bride waits at the venue, then rides home just ahead of the baraat
-  const brideW = jBride.offsetWidth || bw * 0.3;
+  const brideW = SZ.bride || bw * 0.3;
   const brideX = Math.min(W - brideW - 6, bx + bw * 0.99);
   jBride.style.setProperty('--brx', `${brideX}px`);
   jBride.style.setProperty('--bro', String(smooth(13.5, 14, h)));
@@ -349,107 +354,31 @@ function setDay(p) {
     activeIdx = idx;
   }
 }
-// ---------- stepped programme: one gesture = one event ----------
-// The section locks when it reaches the top of the screen. Each scroll/swipe/arrow key plays a smooth
-// transition to the next event; extra input during the transition (and trackpad inertia after it) is ignored.
-const STEP_HOURS = [11.05, 13.2, 14.3, 18.35];          // ghudchadhi, baraat at the venue, jaimala, vadhu aagman
-const STEP_P = STEP_HOURS.map((hr) => (hr - H0) / (H1 - H0));
-const STEP = { SEC_PER_HOUR: 0.8, WHEEL_THRESHOLD: 40, TOUCH_THRESHOLD: 45, QUIET_MS: 220, COOLDOWN_MS: 300 };
-const day = { p: STEP_P[0] };
-let step = 0, locked = false, animating = false, cooldownUntil = 0, lastInputAt = 0, gestureUsed = false;
-let wheelAcc = 0, lastAbs = 0, touchY = null, prevY = window.scrollY, releasing = false;
-setDay(day.p);
+// ---------- the day passes as you scroll ----------
+// Native scroll drives a *target* time; the shown time chases it with damping and a speed cap, so a slow
+// scroll tracks precisely and a hard flick glides at a steady pace instead of racing. Every hour of the day
+// gets the same scroll distance (linear mapping), so the pace is constant across events.
+const MAX_HOURS_PER_SEC = 3;
+const day = { p: 0, target: 0, last: -1 };
+setDay(0);
 journey.classList.add('is-still');
-
-const journeyTop = () => journey.getBoundingClientRect().top + window.scrollY;
-const htmlEl = document.documentElement;
-
-function lock(at) {
-  locked = true;
-  step = at;
-  gsap.killTweensOf(day);
-  day.p = STEP_P[at];
-  setDay(day.p);
-  htmlEl.classList.add('day-locked');
-  window.scrollTo(0, journeyTop());
-  lastInputAt = performance.now(); // the swipe that brought us here doesn't count as a step
-  gestureUsed = true;
-  wheelAcc = at === 0 ? 1 : -1; // momentum direction we arrived with
-  lastAbs = 1e6;                 // so its decaying momentum never looks like a new swipe
-}
-function unlock(dir) {
-  locked = false;
-  releasing = true;
-  htmlEl.classList.remove('day-locked');
-  const target = dir > 0 ? journeyTop() + journey.offsetHeight : $('#invite').getBoundingClientRect().top + window.scrollY;
-  window.scrollTo({ top: target, behavior: 'smooth' });
-  setTimeout(() => { releasing = false; prevY = window.scrollY; }, 900);
-}
-function go(dir) {
-  if (animating) return;
-  const next = step + dir;
-  if (next < 0 || next >= STEP_P.length) { unlock(dir); return; }
-  step = next;
-  animating = true;
-  // constant pace: duration follows how many hours of the day pass in this step
-  const hours = Math.abs(STEP_HOURS[step] - STEP_HOURS[step - dir]);
-  gsap.to(day, {
-    p: STEP_P[step], duration: hours * STEP.SEC_PER_HOUR, ease: 'sine.inOut',
-    onUpdate: () => setDay(day.p),
-    onComplete: () => { animating = false; cooldownUntil = performance.now() + STEP.COOLDOWN_MS; },
-  });
-}
+ScrollTrigger.config({ ignoreMobileResize: true });
+let journeyST = null;
 if (!reducedMotion) {
-  // engage when the section's top edge is crossed (either direction)
-  addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (!locked && !releasing && opened) {
-      const top = journeyTop();
-      const near = Math.abs(y - top) < innerHeight * 0.6; // real scrolling, not a jump (link, restore)
-      if (near && prevY < top - 1 && y >= top - 1) lock(0);
-      else if (near && prevY > top + 1 && y <= top + 1) lock(STEP_P.length - 1);
-    }
-    prevY = window.scrollY;
-  }, { passive: true });
-
-  // A new swipe is either input after a quiet gap, or a sudden jump in strength (trackpad momentum only
-  // ever decays, so a rising delta means the fingers moved again).
-  addEventListener('wheel', (e) => {
-    if (!locked) return;
-    e.preventDefault();
-    const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-    const abs = Math.abs(d);
-    if (abs < 0.5) return;
-    const now = performance.now();
-    const fresh = now - lastInputAt > STEP.QUIET_MS || (abs > lastAbs * 1.8 && abs > 12) || Math.sign(d) !== Math.sign(wheelAcc);
-    lastInputAt = now;
-    lastAbs = abs;
-    if (fresh) { wheelAcc = 0; gestureUsed = false; }
-    wheelAcc += d;
-    if (animating || now < cooldownUntil) { gestureUsed = true; return; } // swipes during/just after a transition are cancelled, not queued
-    if (gestureUsed) return;
-    if (Math.abs(wheelAcc) < STEP.WHEEL_THRESHOLD) return;
-    gestureUsed = true;
-    go(Math.sign(wheelAcc));
-  }, { passive: false });
-
-  addEventListener('touchstart', (e) => { if (locked) { touchY = e.touches[0].clientY; gestureUsed = false; } }, { passive: true });
-  addEventListener('touchmove', (e) => {
-    if (!locked) return;
-    e.preventDefault();
-    if (touchY === null || gestureUsed || animating || performance.now() < cooldownUntil) return;
-    const dy = touchY - e.touches[0].clientY;
-    if (Math.abs(dy) > STEP.TOUCH_THRESHOLD) { gestureUsed = true; lastInputAt = performance.now(); go(Math.sign(dy)); }
-  }, { passive: false });
-  addEventListener('touchend', () => { touchY = null; }, { passive: true });
-
-  addEventListener('keydown', (e) => {
-    if (!locked) return;
-    const down = ['ArrowDown', 'PageDown', ' ', 'Spacebar'].includes(e.key);
-    const up = ['ArrowUp', 'PageUp'].includes(e.key);
-    if (!down && !up) return;
-    e.preventDefault();
-    if (!animating) go(down ? 1 : -1);
+  journeyST = ScrollTrigger.create({
+    trigger: '.journey', start: 'top top', end: 'bottom bottom',
+    onUpdate: (st) => { day.target = st.progress; },
+    onRefresh: (st) => { day.target = st.progress; day.p = st.progress; setDay(day.p); },
+  });
+  const maxStep = MAX_HOURS_PER_SEC / (H1 - H0); // progress per second
+  gsap.ticker.add((_, dtMs) => {
+    const dt = Math.min(dtMs, 50) / 1000;
+    const diff = day.target - day.p;
+    if (Math.abs(diff) < 0.0004) { if (day.p !== day.target) { day.p = day.target; setDay(day.p); } return; }
+    const eased = diff * (1 - Math.exp(-7 * dt));
+    const capped = Math.sign(eased) * Math.min(Math.abs(eased), maxStep * dt);
+    day.p += capped;
+    setDay(day.p);
   });
 } else {
   setDay(1);
@@ -527,6 +456,7 @@ const fsBaraat = $('#fsBaraat'), fsBride = $('#fsBride'), fsHaveli = $('#fsHavel
 const finale = $('.finale'), scene = $('.finale-scene'), finaleCopy = $('.finale-copy');
 fsFamily.innerHTML = familyNamaste();
 let arrived = false, fsStill, stopAt = 0, startAt = 0, finaleST = null, narrowFinale = false, famLeft = 0;
+const FS = { baW: 0, brideLeft: 0, famW: 0 };
 const COPY_LIFT = 46; // phones: the date block moves up to make room for the blessing
 function layoutFinale() {
   const W = innerWidth, H = scene.clientHeight - 40;
@@ -539,6 +469,7 @@ function layoutFinale() {
   Object.assign(fsBride.style, { height: bh + 'px', left: brideLeft + 'px', bottom: 40 + hh * 0.005 + 'px' });
   fsBaraat.style.height = hh * (narrowFinale ? 0.62 : 0.58) + 'px';
   const baW = fsBaraat.offsetWidth;
+  FS.baW = baW; FS.brideLeft = brideLeft;
   stopAt = brideLeft - baW + baW * 0.04;
   startAt = -baW - 20;
 
@@ -548,6 +479,7 @@ function layoutFinale() {
   const famH = Math.min(hh * (narrowFinale ? 0.72 : 0.62), (freeW / (392 / 210)));
   fsFamily.style.height = famH + 'px';
   const famW = famH * (392 / 210);
+  FS.famW = famW;
   famLeft = narrowFinale ? (W - famW) / 2 : pad + (freeW - famW) / 2;
   fsFamily.style.left = famLeft + 'px';
   const names = fsBless.querySelector('.foot-names');
@@ -565,7 +497,7 @@ function renderFinale(pr) {
   let baraatOpacity = 1;
   if (narrowFinale) { // into the haveli
     const enter = smooth(0.5, 0.62, pr);
-    x += (fsBride.offsetLeft - stopAt - fsBaraat.offsetWidth * 0.55) * enter;
+    x += (FS.brideLeft - stopAt - FS.baW * 0.55) * enter;
     baraatOpacity = 1 - smooth(0.56, 0.64, pr);
   }
   fsBaraat.style.transform = `translateX(${x}px)`;
@@ -576,7 +508,7 @@ function renderFinale(pr) {
   // phase 2 — family walks in from the left, blessing flows in line by line
   const fam = smooth(0.55, 0.78, pr);
   fsFamily.style.opacity = String(smooth(0.55, 0.62, pr));
-  fsFamily.style.transform = `translateX(${(1 - fam) * -(famLeft + fsFamily.offsetWidth + 40)}px)`;
+  fsFamily.style.transform = `translateX(${(1 - fam) * -(famLeft + FS.famW + 40)}px)`;
   fsBless.style.opacity = pr > 0.6 ? '1' : '0';
   blessParts().forEach((el, i) => {
     const k = smooth(0.66 + i * 0.06, 0.8 + i * 0.06, pr);
@@ -622,5 +554,5 @@ $('#shareBtn').addEventListener('click', async () => {
 let rT;
 addEventListener('resize', () => {
   clearTimeout(rT);
-  rT = setTimeout(() => { fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); if (locked) window.scrollTo(0, journeyTop()); setDay(day.p); }, 150);
+  rT = setTimeout(() => { measureJourney(); fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); setDay(day.p); }, 150);
 });
