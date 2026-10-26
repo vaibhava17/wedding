@@ -2,7 +2,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger.js';
 import { setLang, initialLang, lang, onLang, t } from './i18n.js';
 import { initFloral } from './floral.js';
-import { groomOnHorse, bride, dholi, trumpeter, haveli, kid, hallMandap } from './illustrations.js';
+import { groomOnHorse, bride, dholi, trumpeter, haveli, kid, hallMandap, familyNamaste } from './illustrations.js';
 
 gsap.registerPlugin(ScrollTrigger);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -519,48 +519,93 @@ if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) {
   $('#mapsBtn').href = 'https://maps.apple.com/?q=' + encodeURIComponent('Hotel Seeta Kiran') + '&address=' + encodeURIComponent('Civil Lines, Bareilly, Uttar Pradesh');
 }
 
-// ---------- finale (pinned): the baraat walks up to the bride waiting at the haveli ----------
-const fsBaraat = $('#fsBaraat'), fsBride = $('#fsBride'), fsHaveli = $('#fsHaveli'), finale = $('.finale'), scene = $('.finale-scene');
-let arrived = false, fsStill, stopAt = 0, startAt = 0, finaleST = null;
+// ---------- finale (pinned) ----------
+// Phase 1: the baraat walks up to the bride at the haveli.
+// Phase 2: the family (hands folded in namaste) and the blessing flow into the empty space on the left.
+// On phones there's no empty space, so the baraat first walks into the haveli.
+const fsBaraat = $('#fsBaraat'), fsBride = $('#fsBride'), fsHaveli = $('#fsHaveli'), fsFamily = $('#fsFamily'), fsBless = $('#fsBless');
+const finale = $('.finale'), scene = $('.finale-scene'), finaleCopy = $('.finale-copy');
+fsFamily.innerHTML = familyNamaste();
+let arrived = false, fsStill, stopAt = 0, startAt = 0, finaleST = null, narrowFinale = false, famLeft = 0;
+const COPY_LIFT = 46; // phones: the date block moves up to make room for the blessing
 function layoutFinale() {
   const W = innerWidth, H = scene.clientHeight - 40;
-  const narrow = W < 700;
-  const hh = Math.max(110, Math.min(H * 0.92, (W * (narrow ? 0.92 : 0.5)) / 1.4));
-  const hw = hh * 1.4, right = narrow ? -W * 0.16 : W * 0.06;
+  narrowFinale = W < 700;
+  const hh = Math.max(110, Math.min(H * 0.92, (W * (narrowFinale ? 0.92 : 0.5)) / 1.4));
+  const hw = hh * 1.4, right = narrowFinale ? -W * 0.16 : W * 0.06;
   Object.assign(fsHaveli.style, { height: hh + 'px', right: right + 'px' });
   const bh = hh * 0.46, bw = bh * (140 / 240);
   const brideLeft = W - right - hw * 0.5 - bw / 2;
   Object.assign(fsBride.style, { height: bh + 'px', left: brideLeft + 'px', bottom: 40 + hh * 0.005 + 'px' });
-  fsBaraat.style.height = hh * (W < 700 ? 0.62 : 0.58) + 'px';
+  fsBaraat.style.height = hh * (narrowFinale ? 0.62 : 0.58) + 'px';
   const baW = fsBaraat.offsetWidth;
   stopAt = brideLeft - baW + baW * 0.04;
   startAt = -baW - 20;
+
+  // family + blessing
+  const pad = narrowFinale ? 12 : Math.max(24, W * 0.04);
+  const freeW = narrowFinale ? W - pad * 2 : Math.max(240, stopAt - pad * 2);
+  const famH = Math.min(hh * (narrowFinale ? 0.72 : 0.62), (freeW / (392 / 210)));
+  fsFamily.style.height = famH + 'px';
+  const famW = famH * (392 / 210);
+  famLeft = narrowFinale ? (W - famW) / 2 : pad + (freeW - famW) / 2;
+  fsFamily.style.left = famLeft + 'px';
+  const names = fsBless.querySelector('.foot-names');
+  names.style.fontSize = Math.min(narrowFinale ? 34 : 60, (narrowFinale ? W - 24 : freeW) / 10.5) + 'px';
+  const copyBottom = finaleCopy.offsetTop + finaleCopy.offsetHeight;
+  Object.assign(fsBless.style, narrowFinale
+    ? { left: '12px', right: '12px', width: 'auto', bottom: 'auto', top: (copyBottom - COPY_LIFT + 22) + 'px' }
+    : { left: pad + 'px', width: freeW + 'px', right: 'auto', top: 'auto', bottom: (38 + famH + 22) + 'px' });
 }
-function placeBaraat(p) {
-  fsBaraat.style.transform = `translateX(${startAt + (stopAt - startAt) * p}px)`;
+const blessParts = () => [...fsBless.children];
+function renderFinale(pr) {
+  // phase 1 — walk
+  const walk = smooth(0.04, 0.42, pr);
+  let x = startAt + (stopAt - startAt) * walk;
+  let baraatOpacity = 1;
+  if (narrowFinale) { // into the haveli
+    const enter = smooth(0.5, 0.62, pr);
+    x += (fsBride.offsetLeft - stopAt - fsBaraat.offsetWidth * 0.55) * enter;
+    baraatOpacity = 1 - smooth(0.56, 0.64, pr);
+  }
+  fsBaraat.style.transform = `translateX(${x}px)`;
+  fsBaraat.style.opacity = baraatOpacity;
+  fsBride.style.opacity = narrowFinale ? String(1 - smooth(0.58, 0.66, pr)) : '1'; // bride goes in with the groom
+  finaleCopy.style.transform = narrowFinale ? `translateY(${-COPY_LIFT * smooth(0.6, 0.72, pr)}px)` : '';
+
+  // phase 2 — family walks in from the left, blessing flows in line by line
+  const fam = smooth(0.55, 0.78, pr);
+  fsFamily.style.opacity = String(smooth(0.55, 0.62, pr));
+  fsFamily.style.transform = `translateX(${(1 - fam) * -(famLeft + fsFamily.offsetWidth + 40)}px)`;
+  fsBless.style.opacity = pr > 0.6 ? '1' : '0';
+  blessParts().forEach((el, i) => {
+    const k = smooth(0.66 + i * 0.06, 0.8 + i * 0.06, pr);
+    el.style.opacity = String(k);
+    el.style.transform = `translateX(${(1 - k) * -60}px)`;
+  });
 }
 layoutFinale();
 if (!reducedMotion) {
   finaleST = ScrollTrigger.create({
     trigger: '.finale-pin', start: 'top top', end: 'bottom bottom', scrub: 0.5,
-    onRefresh: layoutFinale,
+    onRefresh: () => { layoutFinale(); renderFinale(finaleST ? finaleST.progress : 0); },
     onUpdate(st) {
-      const p = smooth(0.08, 0.9, st.progress);
-      placeBaraat(p);
+      renderFinale(st.progress);
       finale.classList.remove('is-still');
       clearTimeout(fsStill); fsStill = setTimeout(() => finale.classList.add('is-still'), 200);
-      if (p > 0.985 && !arrived && floral) {
+      const walked = smooth(0.04, 0.42, st.progress);
+      if (walked > 0.985 && !arrived && floral) {
         arrived = true;
         const r = fsBride.getBoundingClientRect();
         floral.burst(r.left + r.width / 2, r.top + r.height * 0.3, 80, 1);
       }
-      if (p < 0.8) arrived = false;
+      if (walked < 0.8) arrived = false;
     },
   });
-  placeBaraat(0);
+  renderFinale(0);
   finale.classList.add('is-still');
 } else {
-  placeBaraat(1);
+  renderFinale(1);
 }
 
 // ---------- share ----------

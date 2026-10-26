@@ -180,7 +180,6 @@ export function kid() {
       <circle cx="64.5" cy="68.5" r="1.4" fill="#fff"/><circle cx="88.5" cy="68.5" r="1.4" fill="#fff"/>
       <ellipse cx="55" cy="81" rx="6" ry="3.6" fill="#ff8fa3" opacity=".65"/><ellipse cx="95" cy="81" rx="6" ry="3.6" fill="#ff8fa3" opacity=".65"/>
       <path d="M64 84q11 12 22 0z" fill="#a3122a"/><path d="M68 86q7 4 14 0" stroke="#fff" stroke-width="2" fill="none"/>
-      <path d="M75 54v6" stroke="#c8102e" stroke-width="3" stroke-linecap="round"/>
     </g>
   </svg>`;
 }
@@ -260,5 +259,71 @@ export function hallMandap() {
     ${swag(116, 128, 284, 128, 26, 26)}
     ${ladis}
     ${stand(36)}${stand(364)}
+  </svg>`;
+}
+
+// Family greeting guests with folded hands (namaste). Feet on y=0 in local coords, 200 units = adult height.
+function namasteArms(color, skin) {
+  return `<path d="M-21 -146L-25 -112L-4 -121M21 -146L25 -112L4 -121" stroke="${color}" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M-5 -116Q-5 -136 0 -142Q5 -136 5 -116Z" fill="${skin}"/><path d="M0 -141V-117" stroke="#b97a52" stroke-width="1"/>`;
+}
+function face(skin, { bindi = false, glasses = false, mustache = false, kid = false } = {}) {
+  const r = kid ? 19 : 16;
+  return `<circle cx="0" cy="-172" r="${r}" fill="${skin}"/>
+    <path d="M-7 -172q3 2.5 6 0M1 -172q3 2.5 6 0" stroke="#2b1a14" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+    <path d="M-5 -163q5 4 10 0" stroke="#a3122a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <circle cx="-10" cy="-166" r="3" fill="#ff8fa3" opacity=".45"/><circle cx="10" cy="-166" r="3" fill="#ff8fa3" opacity=".45"/>
+    ${bindi ? '<circle cx="0" cy="-181" r="1.9" fill="#c8102e"/>' : ''}
+    ${glasses ? '<circle cx="-6" cy="-173" r="5" fill="none" stroke="#3a2a24" stroke-width="1.4"/><circle cx="6" cy="-173" r="5" fill="none" stroke="#3a2a24" stroke-width="1.4"/><path d="M-1 -173h2" stroke="#3a2a24" stroke-width="1.4"/>' : ''}
+    ${mustache ? '<path d="M-7 -166q3.5 -3 7 0q3.5 -3 7 0q-3.5 3 -7 1q-3.5 2 -7 -1z" fill="#3a2a24"/>' : ''}`;
+}
+function man({ x, h, skin, kurta, pyjama = '#fff7ea', jacket = null, hair = '#2b1a14', mustache = false, glasses = false, kid = false }) {
+  const s = h / 200;
+  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person">
+    <rect x="-12" y="-72" width="10" height="70" rx="4" fill="${pyjama}"/><rect x="2" y="-72" width="10" height="70" rx="4" fill="${pyjama}"/>
+    <ellipse cx="-7" cy="-2" rx="9" ry="4" fill="#6b4a32"/><ellipse cx="7" cy="-2" rx="9" ry="4" fill="#6b4a32"/>
+    <path d="M-24 -150Q0 -158 24 -150L29 -60Q0 -54 -29 -60Z" fill="${kurta}"/>
+    <path d="M0 -150V-96" stroke="${GOLD}" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
+    ${jacket ? `<path d="M-24 -150Q-12 -154 -6 -150L-4 -84L-27 -86Z M24 -150Q12 -154 6 -150L4 -84L27 -86Z" fill="${jacket}"/>` : ''}
+    <rect x="-6" y="-160" width="12" height="12" rx="3" fill="${skin}"/>
+    ${face(skin, { glasses, mustache, kid })}
+    <path d="M${kid ? -19 : -16} -176c0-${kid ? 22 : 18} ${kid ? 38 : 32}-${kid ? 22 : 18} ${kid ? 38 : 32} 0c-6-8-14-11-19-9-5-2-13 1-19 9z" fill="${hair}"/>
+    ${namasteArms(jacket && !kid ? kurta : kurta, skin)}
+  </g>`;
+}
+function woman({ x, h, skin, saree, border = GOLD, blouse, hair = '#2b1a14', bun = true }) {
+  const s = h / 200;
+  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person">
+    <path d="M-19 -100L-30 0H30L19 -100Z" fill="${saree}"/>
+    <path d="M-30 -3H30" stroke="${border}" stroke-width="6"/>
+    <path d="M-12 -100L-16 0M4 -100L5 0" stroke="${border}" stroke-width="1.4" opacity=".6"/>
+    <path d="M-22 -150Q0 -157 22 -150L20 -100H-20Z" fill="${blouse}"/>
+    <path d="M-23 -150Q-10 -128 26 -96L30 -20L22 -18L14 -96Q-8 -116 -16 -142Z" fill="${saree}"/>
+    <path d="M-23 -150Q-10 -128 26 -96L30 -20" stroke="${border}" stroke-width="3" fill="none"/>
+    <rect x="-6" y="-160" width="12" height="12" rx="3" fill="${skin}"/>
+    ${bun ? `<circle cx="0" cy="-192" r="9" fill="${hair}"/>` : ''}
+    ${face(skin, { bindi: true })}
+    <path d="M-17 -170c-2-22 36-22 34 0c-3-8-9-12-17-12s-14 4-17 12z" fill="${hair}"/>
+    <path d="M-17 -170c-2 8-2 16 0 20M17 -170c2 8 2 16 0 20" stroke="${hair}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="-15" cy="-163" r="2.4" fill="${GOLD}"/><circle cx="15" cy="-163" r="2.4" fill="${GOLD}"/>
+    ${namasteArms(blouse, skin)}
+    <circle cx="-22" cy="-114" r="2.6" fill="none" stroke="${GOLD}" stroke-width="2"/><circle cx="22" cy="-114" r="2.6" fill="none" stroke="${GOLD}" stroke-width="2"/>
+  </g>`;
+}
+
+// son, papa, mummy, daughter, grandkid, son-in-law
+export function familyNamaste() {
+  const SK = '#e8a87c', SK2 = '#dd9a6c', SK3 = '#f2b98d';
+  const people = [
+    man({ x: 40, h: 190, skin: SK, kurta: '#0f6b6b', jacket: '#ffc93c' }),
+    man({ x: 112, h: 194, skin: SK2, kurta: '#f7e2b0', jacket: '#8a0a20', hair: '#9b948e', mustache: true, glasses: true }),
+    woman({ x: 180, h: 180, skin: SK, saree: '#c8102e', blouse: '#ffc93c', hair: '#4a3a34' }),
+    woman({ x: 246, h: 178, skin: SK3, saree: '#d6246e', blouse: '#ff8c00' }),
+    man({ x: 296, h: 112, skin: SK3, kurta: '#ffc93c', jacket: '#d6246e', kid: true }),
+    man({ x: 350, h: 196, skin: SK2, kurta: '#ff8c00', jacket: '#fff1d6', mustache: true }),
+  ];
+  return `<svg class="ill ill-family" viewBox="0 -205 392 210" aria-hidden="true">
+    <ellipse cx="196" cy="0" rx="190" ry="6" fill="#000" opacity=".18"/>
+    ${people.join('')}
   </svg>`;
 }

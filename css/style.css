@@ -464,7 +464,7 @@ html[data-lang="en"] .j-title .sw { display: none; }
 
 /* ---------- finale: save the date + baraat arrives (pinned) ---------- */
 .finale { position: relative; color: var(--kagaz); background: #6a0718; }
-.finale-pin { position: relative; height: 230svh; }
+.finale-pin { position: relative; height: 340svh; }
 .finale-sticky {
   position: sticky; top: 0; height: 100svh; overflow: hidden;
   display: flex; flex-direction: column;
@@ -479,7 +479,6 @@ html[data-lang="en"] .j-title .sw { display: none; }
 .std-date span { background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 0 rgb(90 0 40 / .5)); }
 .std-date i { font-style: normal; color: var(--haldi); font-size: .6em; }
 .std-sub { font-size: clamp(1rem, 3.4vw, 1.2rem); font-weight: 600; margin-bottom: 6px; }
-.std-ics { font-size: .88rem; color: rgb(255 247 234 / .8); }
 .finale-scene { position: relative; flex: 0 0 auto; height: min(52svh, 74vw + 60px); }
 @media (max-width: 699px) { .fs-baraat .ill-trumpet { display: none; } }
 .fs-haveli, .fs-bride, .fs-baraat { position: absolute; bottom: 40px; }
@@ -488,11 +487,14 @@ html[data-lang="en"] .j-title .sw { display: none; }
 .fs-baraat .ill-dhol, .fs-baraat .ill-trumpet { height: 66%; margin-right: -1.5%; }
 .fs-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 42px; background: linear-gradient(#a3122a, #6a0718); box-shadow: inset 0 6px 0 rgb(255 201 60 / .55); }
 .finale.is-still .ill .leg, .finale.is-still .ill .walk, .finale.is-still .ill .bob, .finale.is-still .ill .arm { animation-play-state: paused; }
-.finale-foot { position: relative; z-index: 2; text-align: center; padding: 36px var(--pad) calc(46px + env(safe-area-inset-bottom)); background: #6a0718; }
-.foot-line { font-family: var(--serif); font-size: clamp(1.1rem, 4vw, 1.4rem); color: var(--gold-1); }
-.foot-names { font-family: var(--display); font-size: clamp(2.2rem, 10vw, 4rem); line-height: 1.2; margin: 6px 0; background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fs-family { position: absolute; bottom: 38px; z-index: 3; opacity: 0; will-change: transform, opacity; }
+.fs-family .ill { height: 100%; width: auto; }
+.finale-bless { position: absolute; z-index: 4; text-align: center; opacity: 0; pointer-events: none; }
+.finale-bless > * { will-change: transform, opacity; }
+.foot-line { font-family: var(--serif); font-size: clamp(1.05rem, 2.4vw, 1.5rem); color: var(--gold-1); }
+.foot-names { font-family: var(--display); white-space: nowrap; line-height: 1.15; margin: 4px 0; background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 0 rgb(90 0 40 / .45)); }
 .foot-names .amp { font-family: var(--serif); font-size: .5em; }
-.foot-family { color: rgb(255 247 234 / .75); }
+.foot-family { color: rgb(255 247 234 / .85); font-weight: 600; }
 
 /* ---------- illustration motion ---------- */
 .ill { display: block; overflow: visible; }
