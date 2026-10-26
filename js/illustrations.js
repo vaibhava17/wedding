@@ -184,3 +184,81 @@ export function kid() {
     </g>
   </svg>`;
 }
+
+// Wedding hall with a mandap, seen from the aisle (viewBox 400×400, sits behind the stage curtains).
+export function hallMandap() {
+  const G = GOLD;
+  // marigold swag between two points
+  const swag = (x1, y1, x2, y2, sag, n, r = 4.2) => {
+    let out = '';
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t + Math.sin(t * Math.PI) * sag;
+      out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${i % 3 === 2 ? '#d0102e' : i % 2 ? '#ffc93c' : '#ff8c00'}"/>`;
+    }
+    return out;
+  };
+  const ladi = (x, y, n) => {
+    let out = `<g class="ladi" style="transform-origin:${x}px ${y}px;animation-delay:${(x % 7) * 0.2}s">`;
+    for (let i = 0; i < n; i++) out += `<circle cx="${x}" cy="${y + i * 7.5}" r="3.6" fill="${i % 2 ? '#ffc93c' : '#ff8c00'}"/>`;
+    return out + `<circle cx="${x}" cy="${y + n * 7.5}" r="3.2" fill="#d0102e"/></g>`;
+  };
+  const pillar = (x, top, bottom, w, shade = 1) => `
+    <rect x="${x - w / 2}" y="${top}" width="${w}" height="${bottom - top}" fill="url(#hm-gold)" opacity="${shade}"/>
+    <rect x="${x - w / 2 - 2}" y="${bottom - 8}" width="${w + 4}" height="8" rx="1.5" fill="${G}"/>
+    <rect x="${x - w / 2 - 2}" y="${top}" width="${w + 4}" height="6" rx="1.5" fill="${G}"/>
+    <path d="M${x - w / 2} ${top + 30}h${w}M${x - w / 2} ${top + 60}h${w}M${x - w / 2} ${top + 90}h${w}" stroke="#b9741c" stroke-width="1.4"/>
+    ${swag(x, top + 14, x, bottom - 12, 0, Math.round((bottom - top - 26) / 9), 3)}`;
+  const chandelier = (x, len) => {
+    let drops = '';
+    for (let i = -3; i <= 3; i++) drops += `<line x1="${x + i * 7}" y1="${len + 10 - Math.abs(i) * 2}" x2="${x + i * 7}" y2="${len + 26 - Math.abs(i) * 3}" stroke="${G}" stroke-width="1"/><circle class="bulb" cx="${x + i * 7}" cy="${len + 28 - Math.abs(i) * 3}" r="2.6" fill="#fff6c8" style="animation-delay:${(i + 3) * 0.2}s"/>`;
+    return `<g class="chandelier"><line x1="${x}" y1="-40" x2="${x}" y2="${len}" stroke="${G}" stroke-width="1.6"/>
+      <path d="M${x - 26} ${len + 8}Q${x} ${len + 22} ${x + 26} ${len + 8}" stroke="${G}" stroke-width="2.4" fill="none"/>
+      <circle cx="${x}" cy="${len + 4}" r="6" fill="${G}"/>${drops}</g>`;
+  };
+  const stand = (x) => `<g><path d="M${x - 9} 330l4 40h10l4-40z" fill="${G}"/><rect x="${x - 3}" y="300" width="6" height="32" fill="#b9741c"/>
+    ${[[0, -6, 13, '#ff8c00'], [-11, 2, 9, '#d0102e'], [11, 2, 9, '#ffc93c'], [0, 8, 9, '#ff4f9a'], [-6, -14, 7, '#ffc93c'], [7, -13, 7, '#d0102e']].map(([dx, dy, r, c]) => `<circle cx="${x + dx}" cy="${296 + dy}" r="${r}" fill="${c}"/>`).join('')}
+    <path d="M${x - 16} 300c-6-6-8-12-4-16M${x + 16} 300c6-6 8-12 4-16" stroke="#2f8a3a" stroke-width="3" fill="none"/></g>`;
+
+  let floorLines = '';
+  for (let x = -400; x <= 800; x += 50) floorLines += `<line x1="200" y1="210" x2="${x}" y2="400" stroke="#d9b77a" stroke-width="1"/>`;
+  [262, 282, 310, 348, 398].forEach((y) => { floorLines += `<line x1="0" y1="${y}" x2="400" y2="${y}" stroke="#d9b77a" stroke-width="1"/>`; });
+  let backPleats = '';
+  for (let x = 0; x < 400; x += 22) backPleats += `<rect x="${x}" y="0" width="11" height="250" fill="#ffffff" opacity=".05"/>`;
+  let scallops = '';
+  for (let x = 106; x <= 294; x += 12) scallops += `<circle cx="${x}" cy="124" r="6" fill="${G}"/>`;
+  let ladis = '';
+  for (let x = 118; x <= 282; x += 18) ladis += ladi(x, 130, 3 + ((x / 18) % 2));
+
+  return `<svg class="ill ill-hall" viewBox="0 -34 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="hm-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a0f2e"/><stop offset="1" stop-color="#9a1d3e"/></linearGradient>
+      <linearGradient id="hm-gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9741c"/><stop offset=".45" stop-color="#fff1b8"/><stop offset="1" stop-color="#c88a2a"/></linearGradient>
+      <linearGradient id="hm-dome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5a6e"/><stop offset="1" stop-color="#a3122a"/></linearGradient>
+      <radialGradient id="hm-glow" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="hm-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9c98e"/><stop offset="1" stop-color="#fbe7c0"/></linearGradient>
+    </defs>
+    <rect y="-40" width="400" height="290" fill="url(#hm-wall)"/>${backPleats}
+    <path d="M0 250h400v150H0z" fill="url(#hm-floor)"/>${floorLines}
+    <path d="M182 250h36l78 150H104z" fill="#c8102e"/><path d="M182 250l-78 150M218 250l78 150" stroke="${G}" stroke-width="3"/>
+    <circle cx="200" cy="180" r="170" fill="url(#hm-glow)"/>
+    ${chandelier(70, 70)}${chandelier(330, 70)}
+    <!-- mandap -->
+    ${pillar(144, 120, 238, 8, 0.75)}${pillar(256, 120, 238, 8, 0.75)}
+    <rect x="96" y="238" width="208" height="12" rx="2" fill="#fff1d6" stroke="${G}" stroke-width="2"/>
+    <rect x="84" y="250" width="232" height="12" rx="2" fill="#fbe2b8" stroke="${G}" stroke-width="2"/>
+    <rect x="150" y="214" width="26" height="24" rx="5" fill="#c8102e" stroke="${G}" stroke-width="2"/>
+    <rect x="224" y="214" width="26" height="24" rx="5" fill="#c8102e" stroke="${G}" stroke-width="2"/>
+    <path d="M186 238l4-14h20l4 14z" fill="${G}"/><rect x="188" y="221" width="24" height="4" fill="#b9741c"/>
+    <g class="fire"><path class="flame" d="M200 222c-8-6-6-14 0-22 2 6 8 8 6 14 4-2 4-6 3-9 5 6 4 13-2 17z" fill="#ff8c00"/>
+      <path class="flame flame-2" d="M200 222c-4-3-3-8 0-12 1 3 4 5 3 8 2-1 2-3 2-5 2 4 1 7-1 9z" fill="#fff1b8"/></g>
+    ${pillar(116, 118, 250, 11)}${pillar(284, 118, 250, 11)}
+    <path d="M104 122Q104 74 200 56Q296 74 296 122z" fill="url(#hm-dome)" stroke="${G}" stroke-width="3"/>
+    <path d="M130 110Q200 64 270 110" stroke="${G}" stroke-width="2" fill="none" stroke-dasharray="3 5"/>
+    <rect x="100" y="116" width="200" height="10" rx="3" fill="#c8102e" stroke="${G}" stroke-width="2"/>
+    ${scallops}
+    <path d="M200 56v-14" stroke="${G}" stroke-width="3"/><circle cx="200" cy="38" r="6" fill="${G}"/><path d="M195 34q5-12 10 0" fill="#2f8a3a"/>
+    ${swag(116, 128, 284, 128, 26, 26)}
+    ${ladis}
+    ${stand(36)}${stand(364)}
+  </svg>`;
+}

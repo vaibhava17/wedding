@@ -2,7 +2,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger.js';
 import { setLang, initialLang, lang, onLang, t } from './i18n.js';
 import { initFloral } from './floral.js';
-import { groomOnHorse, bride, dholi, trumpeter, haveli, kid } from './illustrations.js';
+import { groomOnHorse, bride, dholi, trumpeter, haveli, kid, hallMandap } from './illustrations.js';
 
 gsap.registerPlugin(ScrollTrigger);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,6 +72,7 @@ lightStrings($('.lights'), { strands: 2, bulbs: innerWidth < 600 ? 12 : 22, sag:
 
 // illustrations
 $('#kidIll').innerHTML = kid();
+$('#hall').innerHTML = hallMandap();
 $('#jBaraat').innerHTML = dholi() + trumpeter() + groomOnHorse();
 $('#jBride').innerHTML = bride();
 $('#fsHaveli').innerHTML = haveli();
@@ -404,8 +405,9 @@ if (!reducedMotion) {
     const y = window.scrollY;
     if (!locked && !releasing && opened) {
       const top = journeyTop();
-      if (prevY < top - 1 && y >= top - 1) lock(0);
-      else if (prevY > top + 1 && y <= top + 1) lock(STEP_P.length - 1);
+      const near = Math.abs(y - top) < innerHeight * 0.6; // real scrolling, not a jump (link, restore)
+      if (near && prevY < top - 1 && y >= top - 1) lock(0);
+      else if (near && prevY > top + 1 && y <= top + 1) lock(STEP_P.length - 1);
     }
     prevY = window.scrollY;
   }, { passive: true });
@@ -477,18 +479,44 @@ if (!reducedMotion) {
   gsap.from('.kid-ill', { y: 120, opacity: 0, duration: 0.9, ease: 'back.out(1.8)', delay: 0.15, scrollTrigger: { trigger: '.kid', start: 'top 80%', once: true } });
 }
 
-// ---------- venue map (lazy) ----------
-const iframe = $('.jharokha iframe');
-new IntersectionObserver(([e], io) => { if (e.isIntersecting) { iframe.src = iframe.dataset.src; io.disconnect(); } }, { rootMargin: '400px 0px' }).observe(iframe);
-
-// ---------- venue curtains part as you scroll ----------
+// ---------- venue: stage curtains part as you scroll ----------
+// Each drape is redrawn from one "openness" value t (0 closed → 1 tied back). The inner edge curves into a
+// gold tie-back and flares out again to the floor, like a real stage curtain.
+const S = 400;
+const lerp = (a, b, k) => a + (b - a) * k;
+function drapePath(t, mirror) {
+  const X = (x) => (mirror ? S - x : x);
+  const top = lerp(201, 150, t), tieY = lerp(250, 232, t), tieX = lerp(201, 34, t), bot = lerp(201, 74, t);
+  const c1y = tieY * 0.5, c2x = tieX + (top - tieX) * 0.35;
+  const edge = `M${X(top)} 0C${X(top)} ${c1y} ${X(c2x)} ${tieY * 0.78} ${X(tieX)} ${tieY}C${X(tieX - 4)} ${tieY + 42} ${X(bot)} ${S - 46} ${X(bot)} ${S}`;
+  return { cloth: `M${X(0)} 0L${X(top)} 0${edge.slice(edge.indexOf('C'))}L${X(0)} ${S}Z`.replace(`L${X(top)} 0C`, `L${X(top)} 0C`), edge, tieX: X(tieX), tieY };
+}
+function drawDrapes(t) {
+  for (const [id, mirror, tie] of [['#drapeL', false, '#tieL'], ['#drapeR', true, '#tieR']]) {
+    const d = drapePath(t, mirror);
+    const g = $(id);
+    g.querySelector('.dr-cloth').setAttribute('d', d.cloth);
+    g.querySelector('.dr-shade').setAttribute('d', d.cloth);
+    g.querySelector('.dr-edge').setAttribute('d', d.edge);
+    const c = $(tie);
+    c.setAttribute('cx', d.tieX); c.setAttribute('cy', d.tieY);
+    c.style.opacity = String(smooth(0.55, 0.9, t));
+  }
+}
 if (!reducedMotion) {
-  const ctl = gsap.timeline({ scrollTrigger: { trigger: '.jharokha', start: 'top 62%', end: 'center 45%', scrub: 0.8 } });
-  ctl.to('.curtain-l', { scaleX: 0.24, ease: 'power2.inOut' }, 0)
-    .to('.curtain-r', { scaleX: 0.24, ease: 'power2.inOut' }, 0)
-    .to('.tieback', { opacity: 1, duration: 0.2 }, 0.75);
+  drawDrapes(0);
+  const cur = { t: 0 };
+  ScrollTrigger.create({
+    trigger: '.stage-frame', start: 'top 70%', end: 'center 45%',
+    onUpdate: (st) => gsap.to(cur, { t: st.progress, duration: 0.6, ease: 'power2.out', overwrite: true, onUpdate: () => drawDrapes(cur.t) }),
+  });
 } else {
-  gsap.set('.curtain', { display: 'none' });
+  drawDrapes(1);
+}
+
+// "Open in Maps": Apple Maps on iPhone/Mac, Google Maps everywhere else
+if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) {
+  $('#mapsBtn').href = 'https://maps.apple.com/?q=' + encodeURIComponent('Hotel Seeta Kiran') + '&address=' + encodeURIComponent('Civil Lines, Bareilly, Uttar Pradesh');
 }
 
 // ---------- finale (pinned): the baraat walks up to the bride waiting at the haveli ----------
