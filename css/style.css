@@ -28,7 +28,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--sindoor-deep); }
+html { -webkit-text-size-adjust: 100%; background: var(--sindoor-deep); scrollbar-gutter: stable; }
 body {
   margin: 0;
   font-family: var(--body);
@@ -253,8 +253,7 @@ html[data-lang="en"] .name { line-height: 1.02; font-size: clamp(3.2rem, 15vw, 7
 .pk-ganesh { font-family: var(--serif); color: var(--sindoor); font-size: 1em; }
 .pk-shloka { font-family: var(--serif); font-size: 1.05em; line-height: 1.6; color: var(--sindoor-deep); }
 .pk-meaning { font-style: italic; font-size: .82em; line-height: 1.45; color: rgb(74 13 24 / .72); max-width: 46ch; }
-.pk-salute { font-family: var(--display); font-size: 1.35em; color: var(--sindoor); margin-top: .3em; justify-self: start; }
-html[data-lang="en"] .pk-salute { justify-self: center; }
+.pk-salute { font-family: var(--display); font-size: 1.35em; color: var(--sindoor); margin-top: .3em; justify-self: center; }
 .pk-lead { font-family: var(--serif); font-size: 1.05em; }
 .pk-person { font-family: var(--display); font-size: 2.15em; line-height: 1.12; color: var(--sindoor); }
 .pk-person small { font-family: var(--serif); font-size: .46em; color: var(--ink); vertical-align: middle; }
@@ -267,8 +266,10 @@ html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
 .pk-body { font-family: var(--serif); font-size: 1.05em; line-height: 1.7; max-width: 46ch; }
 
 /* ---------- journey: the day passes ---------- */
-.journey { position: relative; height: 520svh; background: var(--raat); }
-.journey-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.journey { position: relative; height: 100svh; background: var(--raat); }
+.journey-stage { position: relative; height: 100svh; overflow: hidden; }
+html.day-locked, html.day-locked body { overflow: hidden; overscroll-behavior: none; }
+html.day-locked .journey { touch-action: none; }
 .sky {
   position: absolute; inset: 0;
   --sky-top: #ffb36b; --sky-bottom: #ffe7b0;
@@ -587,7 +588,7 @@ html.js .reveal { opacity: 0; transform: translateY(18px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .journey { height: auto; }
-  .journey-stage { position: relative; height: auto; min-height: 100svh; }
+  .journey-stage { height: auto; min-height: 100svh; }
   .journey-ui { position: relative; }
   .event { opacity: 1; }
 }

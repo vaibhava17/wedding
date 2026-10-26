@@ -286,10 +286,10 @@ function baraatX(h, W, bw) {
   const brideW = jBride.offsetWidth || bw * 0.3;
   const home = W < 700 ? 4 : W * 0.03;
   const venue = W < 700 ? W - bw - brideW * 0.75 : Math.max(home, W * 0.6 - bw * 0.4);
-  if (h < 12) return home;
-  if (h < 13.6) return home + (venue - home) * smooth(12, 13.6, h);
-  if (h < 16.8) return venue;
-  return venue + (home - venue) * smooth(16.8, 18.1, h);
+  if (h < 11.6) return home;
+  if (h < 13.2) return home + (venue - home) * smooth(11.6, 13.2, h); // 1.6h walk, ends exactly at step 2
+  if (h < 16.75) return venue;
+  return venue + (home - venue) * smooth(16.75, 18.35, h); // same 1.6h walk as the outbound trip
 }
 
 function setDay(p) {
@@ -319,7 +319,7 @@ function setDay(p) {
   // procession
   const bw = jBaraat.offsetWidth || W * 0.4;
   const bx = baraatX(h, W, bw);
-  const returning = h >= 16.8;
+  const returning = h >= 16.75;
   jBaraat.style.setProperty('--bx', `${bx}px`);
   jBaraat.style.setProperty('--dir', returning ? '-1' : '1');
   jBaraat.style.opacity = String(smooth(10.55, 10.95, h));
@@ -348,11 +348,107 @@ function setDay(p) {
     activeIdx = idx;
   }
 }
-setDay(0);
+// ---------- stepped programme: one gesture = one event ----------
+// The section locks when it reaches the top of the screen. Each scroll/swipe/arrow key plays a smooth
+// transition to the next event; extra input during the transition (and trackpad inertia after it) is ignored.
+const STEP_HOURS = [11.05, 13.2, 14.3, 18.35];          // ghudchadhi, baraat at the venue, jaimala, vadhu aagman
+const STEP_P = STEP_HOURS.map((hr) => (hr - H0) / (H1 - H0));
+const STEP = { SEC_PER_HOUR: 0.8, WHEEL_THRESHOLD: 40, TOUCH_THRESHOLD: 45, QUIET_MS: 220, COOLDOWN_MS: 300 };
+const day = { p: STEP_P[0] };
+let step = 0, locked = false, animating = false, cooldownUntil = 0, lastInputAt = 0, gestureUsed = false;
+let wheelAcc = 0, lastAbs = 0, touchY = null, prevY = window.scrollY, releasing = false;
+setDay(day.p);
 journey.classList.add('is-still');
-let journeyST = null;
+
+const journeyTop = () => journey.getBoundingClientRect().top + window.scrollY;
+const htmlEl = document.documentElement;
+
+function lock(at) {
+  locked = true;
+  step = at;
+  gsap.killTweensOf(day);
+  day.p = STEP_P[at];
+  setDay(day.p);
+  htmlEl.classList.add('day-locked');
+  window.scrollTo(0, journeyTop());
+  lastInputAt = performance.now(); // the swipe that brought us here doesn't count as a step
+  gestureUsed = true;
+  wheelAcc = at === 0 ? 1 : -1; // momentum direction we arrived with
+  lastAbs = 1e6;                 // so its decaying momentum never looks like a new swipe
+}
+function unlock(dir) {
+  locked = false;
+  releasing = true;
+  htmlEl.classList.remove('day-locked');
+  const target = dir > 0 ? journeyTop() + journey.offsetHeight : $('#invite').getBoundingClientRect().top + window.scrollY;
+  window.scrollTo({ top: target, behavior: 'smooth' });
+  setTimeout(() => { releasing = false; prevY = window.scrollY; }, 900);
+}
+function go(dir) {
+  if (animating) return;
+  const next = step + dir;
+  if (next < 0 || next >= STEP_P.length) { unlock(dir); return; }
+  step = next;
+  animating = true;
+  // constant pace: duration follows how many hours of the day pass in this step
+  const hours = Math.abs(STEP_HOURS[step] - STEP_HOURS[step - dir]);
+  gsap.to(day, {
+    p: STEP_P[step], duration: hours * STEP.SEC_PER_HOUR, ease: 'sine.inOut',
+    onUpdate: () => setDay(day.p),
+    onComplete: () => { animating = false; cooldownUntil = performance.now() + STEP.COOLDOWN_MS; },
+  });
+}
 if (!reducedMotion) {
-  journeyST = ScrollTrigger.create({ trigger: '.journey', start: 'top top', end: 'bottom bottom', scrub: true, onUpdate: (st) => setDay(st.progress) });
+  // engage when the section's top edge is crossed (either direction)
+  addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (!locked && !releasing && opened) {
+      const top = journeyTop();
+      if (prevY < top - 1 && y >= top - 1) lock(0);
+      else if (prevY > top + 1 && y <= top + 1) lock(STEP_P.length - 1);
+    }
+    prevY = window.scrollY;
+  }, { passive: true });
+
+  // A new swipe is either input after a quiet gap, or a sudden jump in strength (trackpad momentum only
+  // ever decays, so a rising delta means the fingers moved again).
+  addEventListener('wheel', (e) => {
+    if (!locked) return;
+    e.preventDefault();
+    const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    const abs = Math.abs(d);
+    if (abs < 0.5) return;
+    const now = performance.now();
+    const fresh = now - lastInputAt > STEP.QUIET_MS || (abs > lastAbs * 1.8 && abs > 12) || Math.sign(d) !== Math.sign(wheelAcc);
+    lastInputAt = now;
+    lastAbs = abs;
+    if (fresh) { wheelAcc = 0; gestureUsed = false; }
+    wheelAcc += d;
+    if (animating || now < cooldownUntil) { gestureUsed = true; return; } // swipes during/just after a transition are cancelled, not queued
+    if (gestureUsed) return;
+    if (Math.abs(wheelAcc) < STEP.WHEEL_THRESHOLD) return;
+    gestureUsed = true;
+    go(Math.sign(wheelAcc));
+  }, { passive: false });
+
+  addEventListener('touchstart', (e) => { if (locked) { touchY = e.touches[0].clientY; gestureUsed = false; } }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (!locked) return;
+    e.preventDefault();
+    if (touchY === null || gestureUsed || animating || performance.now() < cooldownUntil) return;
+    const dy = touchY - e.touches[0].clientY;
+    if (Math.abs(dy) > STEP.TOUCH_THRESHOLD) { gestureUsed = true; lastInputAt = performance.now(); go(Math.sign(dy)); }
+  }, { passive: false });
+  addEventListener('touchend', () => { touchY = null; }, { passive: true });
+
+  addEventListener('keydown', (e) => {
+    if (!locked) return;
+    const down = ['ArrowDown', 'PageDown', ' ', 'Spacebar'].includes(e.key);
+    const up = ['ArrowUp', 'PageUp'].includes(e.key);
+    if (!down && !up) return;
+    e.preventDefault();
+    if (!animating) go(down ? 1 : -1);
+  });
 } else {
   setDay(1);
   eventsEl.forEach((ev) => ev.classList.add('is-active'));
@@ -453,5 +549,5 @@ $('#shareBtn').addEventListener('click', async () => {
 let rT;
 addEventListener('resize', () => {
   clearTimeout(rT);
-  rT = setTimeout(() => { fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); setDay(journeyST ? journeyST.progress : 0); }, 150);
+  rT = setTimeout(() => { fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); if (locked) window.scrollTo(0, journeyTop()); setDay(day.p); }, 150);
 });
