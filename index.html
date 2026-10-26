@@ -103,6 +103,7 @@
   <!-- GATE: carved doors that open -->
   <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateCouple">
     <div class="gate-arch" aria-hidden="true"></div>
+    <div class="gate-flash" aria-hidden="true"></div>
     <div class="door door-l" aria-hidden="true"><div class="door-panel"><span class="knocker"></span></div></div>
     <div class="door door-r" aria-hidden="true"><div class="door-panel"><span class="knocker"></span></div></div>
     <div class="gate-card">
@@ -223,7 +224,6 @@
               <div><h3 data-i18n="ev.4.name">वधू आगमन</h3><p class="ev-time" data-i18n="ev.4.time">सायं 6:00 बजे</p><p class="ev-note" data-i18n="ev.4.note"></p></div>
             </li>
           </ol>
-          <p class="j-hint" data-i18n="ev.hint">स्क्रॉल करें, दिन आगे बढ़ेगा</p>
         </div>
       </div>
     </section>
@@ -246,6 +246,8 @@
         </div>
         <div class="jharokha reveal">
           <div class="jharokha-arch">
+            <div class="curtain curtain-l" aria-hidden="true"><span class="tieback"></span></div>
+            <div class="curtain curtain-r" aria-hidden="true"><span class="tieback"></span></div>
             <iframe title="Map: Hotel Seeta Kiran, Civil Lines, Bareilly" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
               data-src="https://maps.google.com/maps?q=Hotel%20Seeta%20Kiran%2C%20Civil%20Lines%2C%20Bareilly&z=15&output=embed"></iframe>
           </div>
@@ -298,19 +300,23 @@
 
     <!-- FINALE: the baraat arrives -->
     <footer class="finale" id="finale">
-      <div class="lights" aria-hidden="true"></div>
-      <div class="finale-copy">
-        <p class="std-kicker" data-i18n="std.kicker">शुभ तिथि</p>
-        <h2 class="std-date"><span>10</span><i>·</i><span>12</span><i>·</i><span>2026</span></h2>
-        <p class="std-sub" data-i18n="std.sub">गुरूवार · होटल सीता किरण, बरेली</p>
-        <button class="btn btn-gold" type="button" data-save-date><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 13.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1.1-2 1.1.4-2.2-1.6-1.5 2.2-.3z" fill="currentColor"/></svg><span data-i18n="std.button">तारीख सेव करें</span></button>
-        <a class="std-ics" href="assets/vibhor-deepanshi-wedding.ics" download data-i18n="std.ics">अन्य कैलेंडर (.ics)</a>
-      </div>
-      <div class="finale-scene" aria-hidden="true">
-        <div class="fs-haveli" id="fsHaveli"></div>
-        <div class="fs-bride" id="fsBride"></div>
-        <div class="fs-baraat" id="fsBaraat"></div>
-        <div class="fs-ground"></div>
+      <div class="finale-pin">
+        <div class="finale-sticky">
+          <div class="lights" aria-hidden="true"></div>
+          <div class="finale-copy">
+            <p class="std-kicker" data-i18n="std.kicker">शुभ तिथि</p>
+            <h2 class="std-date"><span>10</span><i>·</i><span>12</span><i>·</i><span>2026</span></h2>
+            <p class="std-sub" data-i18n="std.sub">गुरूवार · होटल सीता किरण, बरेली</p>
+            <button class="btn btn-gold" type="button" data-save-date><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 13.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1.1-2 1.1.4-2.2-1.6-1.5 2.2-.3z" fill="currentColor"/></svg><span data-i18n="std.button">तारीख सेव करें</span></button>
+            <a class="std-ics" href="assets/vibhor-deepanshi-wedding.ics" download data-i18n="std.ics">अन्य कैलेंडर (.ics)</a>
+          </div>
+          <div class="finale-scene" aria-hidden="true">
+            <div class="fs-haveli" id="fsHaveli"></div>
+            <div class="fs-bride" id="fsBride"></div>
+            <div class="fs-baraat" id="fsBaraat"></div>
+            <div class="fs-ground"></div>
+          </div>
+        </div>
       </div>
       <div class="finale-foot">
         <p class="foot-line" data-i18n="foot.line">आपकी उपस्थिति ही हमारा सौभाग्य है</p>

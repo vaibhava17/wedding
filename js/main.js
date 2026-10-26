@@ -89,7 +89,7 @@ onLang(() => { applyGuest(); updateClock(lastHour, true); fitPatrika(); ScrollTr
 // ---------- smooth scroll ----------
 let lenis = null;
 if (!reducedMotion) {
-  lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+  lenis = new Lenis({ duration: 1.1, smoothWheel: true, syncTouch: true, syncTouchLerp: 0.09, virtualScroll: (d) => pager(d) });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
@@ -156,12 +156,25 @@ function drawPaths(svg, dur = 1.6, delay = 0) {
     gsap.fromTo(p, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: dur, delay: delay + i * 0.2, ease: 'power2.inOut' });
   });
 }
-// the hero is already fully laid out behind the doors; it only blooms as they swing open
+// hero entrance: everything waits hidden behind the doors, then plays as they part
+const HERO_PARTS = ['.hero-sun', '.hero-kicker', '.name-groom', '.name-bride', '.sang', '.hero-date', '.hero-place', '.countdown > div', '.btn-std', '.scroll-cue'];
+if (!reducedMotion) {
+  gsap.set(HERO_PARTS, { opacity: 0 });
+  $$('.knot path').forEach((p) => { const L = p.getTotalLength(); gsap.set(p, { strokeDasharray: L, strokeDashoffset: L }); });
+}
 function heroIntro() {
   if (reducedMotion) return;
-  gsap.fromTo('.hero-inner', { scale: 0.94, opacity: 0.4 }, { scale: 1, opacity: 1, duration: 1.2, ease: 'power3.out', delay: 0.15 });
-  gsap.fromTo('.name', { y: 18 }, { y: 0, duration: 1.1, ease: 'back.out(1.6)', stagger: 0.12, delay: 0.25 });
-  drawPaths($('.knot'), 1.4, 0.5);
+  const tl = gsap.timeline({ delay: 0.35 });
+  tl.fromTo('.hero-sun', { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 1.8, ease: 'power3.out' }, 0)
+    .fromTo('.hero-kicker', { opacity: 0, y: -24, letterSpacing: '.3em' }, { opacity: 1, y: 0, letterSpacing: '.02em', duration: 0.9, ease: 'power3.out' }, 0.1)
+    .fromTo('.name-groom', { opacity: 0, x: -90, filter: 'blur(12px)' }, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 1.1, ease: 'power4.out' }, 0.3)
+    .fromTo('.name-bride', { opacity: 0, x: 90, filter: 'blur(12px)' }, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 1.1, ease: 'power4.out' }, 0.45)
+    .add(() => drawPaths($('.knot'), 1.2), 0.7)
+    .fromTo('.sang', { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2.4)' }, 1.0)
+    .fromTo(['.hero-date', '.hero-place'], { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out' }, 1.05)
+    .fromTo('.countdown > div', { opacity: 0, rotationX: -90, transformPerspective: 500, y: 10 }, { opacity: 1, rotationX: 0, y: 0, duration: 0.7, stagger: 0.09, ease: 'back.out(1.7)' }, 1.25)
+    .fromTo('.btn-std', { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(2.2)' }, 1.6)
+    .fromTo('.scroll-cue', { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.9);
 }
 
 // ---------- countdown ----------
@@ -274,7 +287,9 @@ function updateClock(h, force = false) {
 
 // baraat route: home (left) → venue (right) for jaimala → back home with the bride at dusk
 function baraatX(h, W, bw) {
-  const home = W * 0.03, venue = Math.max(home, W * 0.6 - bw * 0.4);
+  const brideW = jBride.offsetWidth || bw * 0.3;
+  const home = W < 700 ? 4 : W * 0.03;
+  const venue = W < 700 ? W - bw - brideW * 0.75 : Math.max(home, W * 0.6 - bw * 0.4);
   if (h < 12) return home;
   if (h < 13.6) return home + (venue - home) * smooth(12, 13.6, h);
   if (h < 16.8) return venue;
@@ -313,7 +328,8 @@ function setDay(p) {
   jBaraat.style.setProperty('--dir', returning ? '-1' : '1');
   jBaraat.style.opacity = String(smooth(10.55, 10.95, h));
   // bride waits at the venue, then rides home just ahead of the baraat
-  const brideX = Math.min(W - bw * 0.28, bx + bw * 1.02);
+  const brideW = jBride.offsetWidth || bw * 0.3;
+  const brideX = Math.min(W - brideW - 6, bx + bw * 0.99);
   jBride.style.setProperty('--brx', `${brideX}px`);
   jBride.style.setProperty('--bro', String(smooth(13.5, 14, h)));
   if (Math.abs(bx - lastBx) > 0.5) {
@@ -346,37 +362,42 @@ if (!reducedMotion) {
   eventsEl.forEach((ev) => ev.classList.add('is-active'));
 }
 
-// ---------- snapping: hero ↔ invitation, and one stop per event ----------
-const EVENT_STOPS = [11.05, 12.9, 14.3, 18.35].map((hr) => (hr - H0) / (H1 - H0));
-let snapping = false, idleT = null, lastY = 0, dirY = 1;
-function snapNow() {
-  if (!lenis || snapping || !opened) return;
-  const y = lenis.scroll;
-  const inv = $('#invite').offsetTop;
-  let target = null;
-  if (y > 2 && y < inv - 2) {
-    target = dirY > 0 ? (y > inv * 0.06 ? inv : 0) : (y < inv * 0.94 ? 0 : inv);
-  } else if (journeyST && y > journeyST.start - 4 && y < journeyST.end + 4) {
-    const span = journeyST.end - journeyST.start;
-    const p = (y - journeyST.start) / span;
-    const stops = [0, ...EVENT_STOPS, 1];
-    const best = dirY > 0 ? (stops.find((s) => s >= p - 0.004) ?? 1) : ([...stops].reverse().find((s) => s <= p + 0.004) ?? 0);
-    if (Math.abs(best - p) < 0.22) target = journeyST.start + best * span;
-  }
-  if (target !== null && Math.abs(target - y) > 3) {
-    snapping = true;
-    lenis.scrollTo(target, { duration: 0.7, easing: (x) => 1 - Math.pow(1 - x, 3), onComplete: () => { snapping = false; } });
-    setTimeout(() => { snapping = false; }, 850);
-  }
+// ---------- pager: one gesture = one page (hero, invitation, each event, venue, ...) ----------
+const EVENT_STOPS = [11.05, 12.9, 14.3, 16.1, 17.4, 18.35].map((hr) => (hr - H0) / (H1 - H0));
+let paging = false, swallowUntil = 0;
+function snapPoints() {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const top = (id) => $(id).getBoundingClientRect().top + window.scrollY;
+  const pts = [0, top('#invite')];
+  if (journeyST) { const span = journeyST.end - journeyST.start; [0, ...EVENT_STOPS, 1].forEach((s) => pts.push(journeyST.start + s * span)); }
+  pts.push(top('#venue'), top('#kid'), top('#family'));
+  if (finaleST) { const span = finaleST.end - finaleST.start; pts.push(finaleST.start, finaleST.start + span * 0.5, finaleST.end); }
+  pts.push(max);
+  return [...new Set(pts.map((p) => Math.round(Math.min(max, Math.max(0, p)))))].sort((a, b) => a - b);
 }
-if (lenis) {
-  lenis.on('scroll', ({ scroll }) => {
-    if (Math.abs(scroll - lastY) > 0.5) dirY = scroll > lastY ? 1 : -1;
-    lastY = scroll;
-    if (snapping) return;
-    clearTimeout(idleT);
-    idleT = setTimeout(snapNow, 130);
+function pager({ deltaY, event }) {
+  if (!opened || !lenis) return true;
+  const now = performance.now();
+  if (paging || now < swallowUntil) {
+    if (event.cancelable) event.preventDefault();
+    if (!paging) swallowUntil = now + 180; // keep eating trackpad inertia until it stops
+    return false;
+  }
+  if (event.type === 'touchstart' || event.type === 'touchend' || Math.abs(deltaY) < 3) return true;
+  const y = lenis.scroll, d = Math.sign(deltaY);
+  const pts = snapPoints();
+  const next = d > 0 ? pts.find((p) => p > y + 6) : [...pts].reverse().find((p) => p < y - 6);
+  if (next === undefined || Math.abs(next - y) > innerHeight * 1.12) return true; // tall content: scroll freely
+  if (event.cancelable) event.preventDefault();
+  paging = true;
+  const dist = Math.abs(next - y) / innerHeight;
+  lenis.scrollTo(next, {
+    duration: 0.75 + Math.min(0.5, dist * 0.35), lock: true, force: true,
+    easing: (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),
+    onComplete: () => { paging = false; swallowUntil = performance.now() + 260; },
   });
+  setTimeout(() => { if (paging) { paging = false; swallowUntil = performance.now() + 200; } }, 1600);
+  return false;
 }
 
 // ---------- kid's handwritten note ----------
@@ -406,27 +427,52 @@ if (!reducedMotion) {
 const iframe = $('.jharokha iframe');
 new IntersectionObserver(([e], io) => { if (e.isIntersecting) { iframe.src = iframe.dataset.src; io.disconnect(); } }, { rootMargin: '400px 0px' }).observe(iframe);
 
-// ---------- finale: the baraat walks up to the bride ----------
-const fsBaraat = $('#fsBaraat'), fsBride = $('#fsBride'), finale = $('.finale');
-let arrived = false, fsStill;
-function placeBaraat(progress) {
-  const stopAt = fsBride.offsetLeft - fsBaraat.offsetWidth * 0.98;
-  const start = -fsBaraat.offsetWidth;
-  fsBaraat.style.transform = `translateX(${start + (stopAt - start) * smooth(0, 1, progress)}px)`;
-}
+// ---------- venue curtains part as you scroll ----------
 if (!reducedMotion) {
-  ScrollTrigger.create({
-    trigger: '.finale-scene', start: 'top bottom', end: 'bottom bottom', scrub: 0.6,
+  const ctl = gsap.timeline({ scrollTrigger: { trigger: '.jharokha', start: 'top 62%', end: 'center 45%', scrub: 0.8 } });
+  ctl.to('.curtain-l', { scaleX: 0.24, ease: 'power2.inOut' }, 0)
+    .to('.curtain-r', { scaleX: 0.24, ease: 'power2.inOut' }, 0)
+    .to('.tieback', { opacity: 1, duration: 0.2 }, 0.75);
+} else {
+  gsap.set('.curtain', { display: 'none' });
+}
+
+// ---------- finale (pinned): the baraat walks up to the bride waiting at the haveli ----------
+const fsBaraat = $('#fsBaraat'), fsBride = $('#fsBride'), fsHaveli = $('#fsHaveli'), finale = $('.finale'), scene = $('.finale-scene');
+let arrived = false, fsStill, stopAt = 0, startAt = 0, finaleST = null;
+function layoutFinale() {
+  const W = innerWidth, H = scene.clientHeight - 40;
+  const narrow = W < 700;
+  const hh = Math.max(110, Math.min(H * 0.92, (W * (narrow ? 0.92 : 0.5)) / 1.4));
+  const hw = hh * 1.4, right = narrow ? -W * 0.16 : W * 0.06;
+  Object.assign(fsHaveli.style, { height: hh + 'px', right: right + 'px' });
+  const bh = hh * 0.46, bw = bh * (140 / 240);
+  const brideLeft = W - right - hw * 0.5 - bw / 2;
+  Object.assign(fsBride.style, { height: bh + 'px', left: brideLeft + 'px', bottom: 40 + hh * 0.005 + 'px' });
+  fsBaraat.style.height = hh * (W < 700 ? 0.62 : 0.58) + 'px';
+  const baW = fsBaraat.offsetWidth;
+  stopAt = brideLeft - baW + baW * 0.04;
+  startAt = -baW - 20;
+}
+function placeBaraat(p) {
+  fsBaraat.style.transform = `translateX(${startAt + (stopAt - startAt) * p}px)`;
+}
+layoutFinale();
+if (!reducedMotion) {
+  finaleST = ScrollTrigger.create({
+    trigger: '.finale-pin', start: 'top top', end: 'bottom bottom', scrub: 0.5,
+    onRefresh: layoutFinale,
     onUpdate(st) {
-      placeBaraat(st.progress);
+      const p = smooth(0.08, 0.9, st.progress);
+      placeBaraat(p);
       finale.classList.remove('is-still');
-      clearTimeout(fsStill); fsStill = setTimeout(() => finale.classList.add('is-still'), 220);
-      if (st.progress > 0.97 && !arrived && floral) {
+      clearTimeout(fsStill); fsStill = setTimeout(() => finale.classList.add('is-still'), 200);
+      if (p > 0.985 && !arrived && floral) {
         arrived = true;
         const r = fsBride.getBoundingClientRect();
-        floral.burst(r.left + r.width / 2, r.top + r.height * 0.3, 70, 1);
+        floral.burst(r.left + r.width / 2, r.top + r.height * 0.3, 80, 1);
       }
-      if (st.progress < 0.8) arrived = false;
+      if (p < 0.8) arrived = false;
     },
   });
   placeBaraat(0);
@@ -449,5 +495,5 @@ $('#shareBtn').addEventListener('click', async () => {
 let rT;
 addEventListener('resize', () => {
   clearTimeout(rT);
-  rT = setTimeout(() => { fitPatrika(); ScrollTrigger.refresh(); setDay(journeyST ? journeyST.progress : 0); }, 150);
+  rT = setTimeout(() => { fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); setDay(journeyST ? journeyST.progress : 0); }, 150);
 });
