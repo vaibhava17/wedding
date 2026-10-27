@@ -1,6 +1,6 @@
 # Vibhor संग Deepanshi — wedding invitation
 
-Live: https://vaibhava17.github.io/wedding/
+Live: https://heyvaibhav.dev/wedding-invitation/
 
 Single-page, mobile-first digital invitation (Hindi + English). Plain HTML/CSS/ES modules, no build step.
 Content is taken word for word from the printed card (Thursday 10 Dec 2026, Hotel Seeta Kiran, Civil Lines, Bareilly).
@@ -16,11 +16,11 @@ python3 -m http.server 5174
 
 | Link | Effect |
 |---|---|
-| `/wedding/` | Hindi (default) |
-| `/wedding/?lang=en` | English |
-| `/wedding/?to=Sharma%20Parivar` | Doors greet "आदरणीय Sharma Parivar" — personalise per family |
-| `/wedding/?invite=full` | **Full invite**: adds the 9 Dec Tilkotsav / lunch / Haldi n Mehndi section (Royal Palm Hall) |
-| `/wedding/?invite=full&to=Sharma%20Parivar&lang=en` | params combine |
+| `/wedding-invitation/` | Hindi (default) |
+| `/wedding-invitation/?lang=en` | English |
+| `/wedding-invitation/?to=Sharma%20Parivar` | Doors greet "आदरणीय Sharma Parivar" — personalise per family |
+| `/wedding-invitation/?invite=full` | **Full invite**: adds the 9 Dec Tilkotsav / lunch / Haldi n Mehndi section (Royal Palm Hall) |
+| `/wedding-invitation/?invite=full&to=Sharma%20Parivar&lang=en` | params combine |
 
 ## Sections
 

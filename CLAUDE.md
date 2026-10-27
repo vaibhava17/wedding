@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Wedding invitation site for Vibhor संग Deepanshi (real family wedding, 10 Dec 2026, Bareilly). Hosted on GitHub Pages: https://vaibhava17.github.io/wedding/ (repo `vaibhava17/wedding`, push via `git@github-personal:`, commits as vaibhava17).
+Wedding invitation site for Vibhor संग Deepanshi (real family wedding, 10 Dec 2026, Bareilly). Hosted on GitHub Pages: https://heyvaibhav.dev/wedding-invitation/ (repo `vaibhava17/wedding-invitation`, push via `git@github-personal:`, commits as vaibhava17).
 
 ## Stack
 
