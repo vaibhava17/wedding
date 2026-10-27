@@ -260,8 +260,9 @@ html[data-lang="en"] .name { line-height: 1.02; font-size: clamp(3.2rem, 15vw, 7
 .pk-person { font-family: var(--display); font-size: 2.15em; line-height: 1.12; color: var(--sindoor); }
 .pk-person small { font-family: var(--serif); font-size: .46em; color: var(--ink); vertical-align: middle; }
 .pk-rel { font-family: var(--serif); font-size: .92em; line-height: 1.45; color: rgb(74 13 24 / .85); max-width: 50ch; }
-.pk-sang { display: flex; align-items: center; gap: .5em; margin: .1em 0; font-family: var(--serif); color: var(--sindoor); font-size: 1.1em; }
-.pk-sang svg { width: 4.6em; height: 2.3em; }
+.pk-sang { display: flex; flex-direction: column; align-items: center; gap: 0; margin: .1em 0; font-family: var(--serif); color: var(--sindoor); font-size: 1.1em; line-height: 1; }
+.pk-sang svg { display: block; width: 4.6em; height: 2.3em; }
+.pk-sang span { margin-top: -.15em; }
 .pk-ke { font-family: var(--serif); font-size: 1.05em; }
 .pk-sanskar { font-family: var(--display); font-size: 1.6em; line-height: 1.2; color: var(--sindoor-deep); }
 html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
