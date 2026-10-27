@@ -154,7 +154,8 @@ export function initFloral(canvas, { reducedMotion = false } = {}) {
     if (pointer.t) { pointer.vx = (e.clientX - pointer.x) / dt * 16; pointer.vy = (e.clientY - pointer.y) / dt * 16; }
     pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = now;
   }, { passive: true });
-  addEventListener('scroll', () => { scrollY = window.scrollY; }, { passive: true });
+  // ignore the jump to 0 while the page is frozen (position:fixed body)
+  addEventListener('scroll', () => { if (document.body.style.position !== 'fixed') scrollY = window.scrollY; }, { passive: true });
 
 
   // ---------- resize ----------

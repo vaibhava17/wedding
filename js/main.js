@@ -202,7 +202,7 @@ setInterval(tickCountdown, 1000);
 ScrollTrigger.create({
   trigger: '.hero', start: 'bottom 60%',
   onEnter: () => floral?.setAmbient(0.35),
-  onLeaveBack: () => floral?.setAmbient(innerWidth < 600 ? 1.2 : 2),
+  onLeaveBack: () => { if (document.body.style.position !== 'fixed') floral?.setAmbient(innerWidth < 600 ? 1.2 : 2); },
 });
 
 // ---------- toast ----------
@@ -382,7 +382,7 @@ function setDay(p) {
 // pausing briefly at each event. Scrolling up is always allowed (pauses the film); coming back resumes it.
 // Once it has played to the end, scrolling is released for good and a replay button appears.
 const DAY = { DURATION: 9 }; // seconds for the whole day, one constant pace
-const day = { h: H0, watched: false, locked: false, prevY: window.scrollY };
+const day = { h: H0, watched: false, locked: false, prevY: window.scrollY, noRelockUntil: 0 };
 const jProgress = $('#jProgress'), jReplay = $('#jReplay');
 const hourToP = (hr) => (hr - H0) / (H1 - H0);
 function renderDay() { setDay(hourToP(day.h)); }
@@ -392,25 +392,43 @@ journey.classList.add('is-still');
 const film = gsap.timeline({ paused: true, onUpdate: () => { jProgress.style.transform = `scaleX(${film.progress()})`; }, onComplete: finishDay });
 // one continuous, evenly paced pass through the day (no stops)
 film.to(day, { h: H1, duration: DAY.DURATION, ease: 'none', onUpdate: renderDay });
-const journeyTop = () => journey.getBoundingClientRect().top + window.scrollY;
+const journeyTop = () => journey.getBoundingClientRect().top + (document.body.style.position === 'fixed' ? frozenY : window.scrollY);
 const htmlEl = document.documentElement;
 
+// iOS Safari ignores overflow:hidden during momentum scrolling, so the page is frozen the robust way:
+// the body is pinned with position:fixed at the current offset and restored exactly on release.
+let frozenY = 0;
+function freezePage(y) {
+  frozenY = y;
+  const b = document.body.style;
+  b.position = 'fixed'; b.top = `-${y}px`; b.left = '0'; b.right = '0'; b.width = '100%';
+  htmlEl.classList.add('day-locked');
+}
+function thawPage(toY = frozenY) {
+  const b = document.body.style;
+  b.position = ''; b.top = ''; b.left = ''; b.right = ''; b.width = '';
+  htmlEl.classList.remove('day-locked');
+  htmlEl.style.scrollBehavior = 'auto';
+  window.scrollTo(0, toY);
+  htmlEl.style.scrollBehavior = '';
+}
 function lockDay() {
   if (day.locked) return;
   day.locked = true;
-  htmlEl.classList.add('day-locked');
-  window.scrollTo(0, journeyTop());
+  freezePage(journeyTop());
   journey.classList.add('is-playing');
   film.play();
 }
 function unlockDay(escapeUp = false) {
   if (!day.locked) return;
   day.locked = false;
-  htmlEl.classList.remove('day-locked');
   journey.classList.remove('is-playing');
   if (!day.watched) film.pause();
+  day.noRelockUntil = performance.now() + 900; // restoring the scroll position must not look like arriving again
+  thawPage(frozenY);
   // the gesture that escaped was swallowed while locked; move the page so it visibly responds
-  if (escapeUp) { day.prevY = journeyTop() - innerHeight * 0.4; window.scrollTo({ top: day.prevY, behavior: 'smooth' }); }
+  if (escapeUp) { day.prevY = frozenY - innerHeight * 0.4; window.scrollTo({ top: day.prevY, behavior: 'smooth' }); }
+  else day.prevY = window.scrollY;
 }
 function finishDay() {
   day.watched = true;
@@ -431,8 +449,9 @@ if (reducedMotion) {
 } else {
   // engage when the section's top is reached (or passed) while moving down
   addEventListener('scroll', () => {
+    if (document.body.style.position === 'fixed') return;
     const y = window.scrollY;
-    if (opened && !day.watched && !day.locked && y >= journeyTop() - 2 && y > day.prevY) lockDay();
+    if (opened && !day.watched && !day.locked && performance.now() > day.noRelockUntil && y >= journeyTop() - 2 && y > day.prevY) lockDay();
     day.prevY = window.scrollY;
   }, { passive: true });
 
@@ -687,5 +706,5 @@ $('#shareBtn').addEventListener('click', async () => {
 let rT;
 addEventListener('resize', () => {
   clearTimeout(rT);
-  rT = setTimeout(() => { measureJourney(); fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); renderDay(); if (day.locked) window.scrollTo(0, journeyTop()); }, 150);
+  rT = setTimeout(() => { measureJourney(); fitPatrika(); layoutFinale(); if (!day.locked) ScrollTrigger.refresh(); renderDay(); }, 150);
 });

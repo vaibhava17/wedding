@@ -347,42 +347,19 @@ html.day-locked .journey { touch-action: pan-down; }
 @media (hover: none) and (pointer: coarse) {
   .event.is-active { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgb(138 10 32 / .9); }
   .sun i { box-shadow: 0 0 40px 14px rgb(255 190 80 / .5); }
-  .clouds span { animation: none; }
 }
-.sky {
-  position: absolute; inset: 0;
-  --sky-top: #ffb36b; --sky-bottom: #ffe7b0;
-  --skyline: #7a1530; --skyline-2: #5c0f26; --window: #ffd36b;
-  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+.clouds span {
+  position: absolute; left: 0; height: 26px; border-radius: 30px; background: rgb(255 255 255 / var(--cloud, .7));
+  will-change: transform; animation: drift linear infinite;
 }
-.stars { position: absolute; inset: 0; opacity: var(--stars, 0);
-  background-image:
-    radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 28% 32%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 44% 12%, #fff, transparent), radial-gradient(1px 1px at 62% 26%, #fff, transparent),
-    radial-gradient(2px 2px at 78% 14%, #fff, transparent), radial-gradient(1px 1px at 88% 36%, #fff, transparent),
-    radial-gradient(1px 1px at 20% 44%, #fff, transparent), radial-gradient(1.5px 1.5px at 54% 40%, #fff, transparent),
-    radial-gradient(1px 1px at 70% 48%, #fff, transparent), radial-gradient(1.5px 1.5px at 36% 52%, #fff, transparent);
-}
-.sun { position: absolute; left: 0; top: 0; width: clamp(64px, 12vw, 120px); aspect-ratio: 1; translate: -50% -50%; transform: translate(var(--sun-x, 10vw), var(--sun-y, 60vh)); }
-.sun i {
-  position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle at 40% 38%, #fffbe6, var(--sun-core, #ffd36b) 45%, var(--sun-edge, #ff8c00));
-  box-shadow: 0 0 60px 20px rgb(255 190 80 / .55), 0 0 160px 60px rgb(255 160 60 / .2);
-}
-.moon {
-  position: absolute; right: 14%; top: 16%; width: clamp(40px, 6vw, 70px); aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fffef0, #f3e7c4);
-  box-shadow: 0 0 40px 10px rgb(255 245 210 / .35), inset -10px -6px 0 rgb(0 0 0 / .06);
-  opacity: var(--stars, 0); transform: translateY(calc((1 - var(--stars, 0)) * 40px));
-}
-.clouds span { position: absolute; height: 26px; border-radius: 30px; background: rgb(255 255 255 / var(--cloud, .7)); filter: blur(1px); animation: drift linear infinite; }
 .clouds span::before, .clouds span::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
 .clouds span::before { width: 44px; height: 44px; left: 18px; top: -22px; }
 .clouds span::after { width: 30px; height: 30px; left: 54px; top: -14px; }
 .clouds span:nth-child(1) { width: 120px; top: 18%; animation-duration: 70s; animation-delay: -10s; }
-.clouds span:nth-child(2) { width: 90px; top: 30%; animation-duration: 90s; animation-delay: -50s; scale: .8; }
-.clouds span:nth-child(3) { width: 140px; top: 12%; animation-duration: 110s; animation-delay: -80s; scale: .65; }
-@keyframes drift { from { left: -20%; } to { left: 110%; } }
+.clouds span:nth-child(2) { width: 90px; top: 30%; animation-duration: 90s; animation-delay: -50s; }
+.clouds span:nth-child(3) { width: 140px; top: 12%; animation-duration: 110s; animation-delay: -80s; }
+/* transform-only animation: no layout or blur repaints (Safari) */
+@keyframes drift { from { transform: translate3d(-160px, 0, 0); } to { transform: translate3d(calc(100vw + 40px), 0, 0); } }
 .skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 24%; }
 /* wedding string lights (jhalar) that switch on at dusk */
 .jlights { position: absolute; left: 0; right: 0; bottom: 24%; height: 40px; pointer-events: none; }
