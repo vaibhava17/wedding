@@ -267,7 +267,7 @@ function namasteArms(color, skin) {
   return `<path d="M-21 -146L-25 -112L-4 -121M21 -146L25 -112L4 -121" stroke="${color}" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M-5 -116Q-5 -136 0 -142Q5 -136 5 -116Z" fill="${skin}"/><path d="M0 -141V-117" stroke="#b97a52" stroke-width="1"/>`;
 }
-function face(skin, { bindi = false, glasses = false, mustache = false, kid = false } = {}) {
+function face(skin, { bindi = false, glasses = false, mustache = false, kid = false, tilak = false, haldi = false } = {}) {
   const r = kid ? 19 : 16;
   return `<circle cx="0" cy="-172" r="${r}" fill="${skin}"/>
     <path d="M-7 -172q3 2.5 6 0M1 -172q3 2.5 6 0" stroke="#2b1a14" stroke-width="1.7" fill="none" stroke-linecap="round"/>
@@ -275,25 +275,28 @@ function face(skin, { bindi = false, glasses = false, mustache = false, kid = fa
     <circle cx="-10" cy="-166" r="3" fill="#ff8fa3" opacity=".45"/><circle cx="10" cy="-166" r="3" fill="#ff8fa3" opacity=".45"/>
     ${bindi ? '<circle cx="0" cy="-181" r="1.9" fill="#c8102e"/>' : ''}
     ${glasses ? '<circle cx="-6" cy="-173" r="5" fill="none" stroke="#3a2a24" stroke-width="1.4"/><circle cx="6" cy="-173" r="5" fill="none" stroke="#3a2a24" stroke-width="1.4"/><path d="M-1 -173h2" stroke="#3a2a24" stroke-width="1.4"/>' : ''}
-    ${mustache ? '<path d="M-7 -166q3.5 -3 7 0q3.5 -3 7 0q-3.5 3 -7 1q-3.5 2 -7 -1z" fill="#3a2a24"/>' : ''}`;
+    ${mustache ? '<path d="M-7 -166q3.5 -3 7 0q3.5 -3 7 0q-3.5 3 -7 1q-3.5 2 -7 -1z" fill="#3a2a24"/>' : ''}
+    ${tilak ? '<path class="tilak-mark" d="M0 -187v10" stroke="#d0102e" stroke-width="3.2" stroke-linecap="round"/><circle cx="-1.5" cy="-189" r="1" fill="#fff7ea"/><circle cx="1.5" cy="-190" r="1" fill="#fff7ea"/>' : ''}
+    ${haldi ? '<ellipse cx="-10" cy="-167" rx="5" ry="3.5" fill="#ffc21a" opacity=".85"/><ellipse cx="10" cy="-166" rx="5" ry="3.5" fill="#ffc21a" opacity=".85"/><ellipse cx="0" cy="-184" rx="4" ry="2.5" fill="#ffc21a" opacity=".7"/>' : ''}`;
 }
-function man({ x, h, skin, kurta, pyjama = '#fff7ea', jacket = null, hair = '#2b1a14', mustache = false, glasses = false, kid = false }) {
+function man({ x, h, skin, kurta, pyjama = '#fff7ea', jacket = null, hair = '#2b1a14', mustache = false, glasses = false, kid = false, tilak = false, haldi = false, hold = '', cls = '' }) {
   const s = h / 200;
-  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person">
+  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person ${cls}">
     <rect x="-12" y="-72" width="10" height="70" rx="4" fill="${pyjama}"/><rect x="2" y="-72" width="10" height="70" rx="4" fill="${pyjama}"/>
     <ellipse cx="-7" cy="-2" rx="9" ry="4" fill="#6b4a32"/><ellipse cx="7" cy="-2" rx="9" ry="4" fill="#6b4a32"/>
     <path d="M-24 -150Q0 -158 24 -150L29 -60Q0 -54 -29 -60Z" fill="${kurta}"/>
     <path d="M0 -150V-96" stroke="${GOLD}" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>
     ${jacket ? `<path d="M-24 -150Q-12 -154 -6 -150L-4 -84L-27 -86Z M24 -150Q12 -154 6 -150L4 -84L27 -86Z" fill="${jacket}"/>` : ''}
     <rect x="-6" y="-160" width="12" height="12" rx="3" fill="${skin}"/>
-    ${face(skin, { glasses, mustache, kid })}
+    ${face(skin, { glasses, mustache, kid, tilak, haldi })}
     <path d="M${kid ? -19 : -16} -176c0-${kid ? 22 : 18} ${kid ? 38 : 32}-${kid ? 22 : 18} ${kid ? 38 : 32} 0c-6-8-14-11-19-9-5-2-13 1-19 9z" fill="${hair}"/>
     ${namasteArms(jacket && !kid ? kurta : kurta, skin)}
+    ${hold}
   </g>`;
 }
-function woman({ x, h, skin, saree, border = GOLD, blouse, hair = '#2b1a14', bun = true }) {
+function woman({ x, h, skin, saree, border = GOLD, blouse, hair = '#2b1a14', bun = true, haldi = false, hands = null, hold = '', cls = '' }) {
   const s = h / 200;
-  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person">
+  return `<g transform="translate(${x} 0) scale(${s})" class="fam-person ${cls}">
     <path d="M-19 -100L-30 0H30L19 -100Z" fill="${saree}"/>
     <path d="M-30 -3H30" stroke="${border}" stroke-width="6"/>
     <path d="M-12 -100L-16 0M4 -100L5 0" stroke="${border}" stroke-width="1.4" opacity=".6"/>
@@ -302,12 +305,14 @@ function woman({ x, h, skin, saree, border = GOLD, blouse, hair = '#2b1a14', bun
     <path d="M-23 -150Q-10 -128 26 -96L30 -20" stroke="${border}" stroke-width="3" fill="none"/>
     <rect x="-6" y="-160" width="12" height="12" rx="3" fill="${skin}"/>
     ${bun ? `<circle cx="0" cy="-192" r="9" fill="${hair}"/>` : ''}
-    ${face(skin, { bindi: true })}
+    ${face(skin, { bindi: true, haldi })}
     <path d="M-17 -170c-2-22 36-22 34 0c-3-8-9-12-17-12s-14 4-17 12z" fill="${hair}"/>
     <path d="M-17 -170c-2 8-2 16 0 20M17 -170c2 8 2 16 0 20" stroke="${hair}" stroke-width="4" stroke-linecap="round"/>
     <circle cx="-15" cy="-163" r="2.4" fill="${GOLD}"/><circle cx="15" cy="-163" r="2.4" fill="${GOLD}"/>
-    ${namasteArms(blouse, skin)}
+    ${namasteArms(blouse, hands || skin)}
+    ${hands ? '<path d="M-3 -122q3 -4 6 0M-2 -130q2 -3 4 0" stroke="#7a2a08" stroke-width="1.2" fill="none"/>' : ''}
     <circle cx="-22" cy="-114" r="2.6" fill="none" stroke="${GOLD}" stroke-width="2"/><circle cx="22" cy="-114" r="2.6" fill="none" stroke="${GOLD}" stroke-width="2"/>
+    ${hold}
   </g>`;
 }
 
@@ -325,5 +330,131 @@ export function familyNamaste() {
   return `<svg class="ill ill-family" viewBox="0 -205 392 210" aria-hidden="true">
     <ellipse cx="196" cy="0" rx="190" ry="6" fill="#000" opacity=".18"/>
     ${people.join('')}
+  </svg>`;
+}
+
+// ---------- pre-wedding (9 Dec) artwork ----------
+export function hennaHand() {
+  const H = '#8a3b12';
+  let dots = '';
+  for (let i = 0; i < 9; i++) dots += `<circle cx="${60 + i * 6}" cy="${178 - Math.sin(i / 8 * Math.PI) * 6}" r="1.6" fill="${H}"/>`;
+  return `<svg class="ill ill-henna" viewBox="0 0 160 220" aria-hidden="true">
+    <path d="M44 210c-6-22-10-46-8-70l-14-46c-3-10 10-15 15-6l15 34-2-78c0-12 15-12 16 0l4 66 4-80c1-12 16-12 16 0l1 80 8-70c2-12 16-10 15 2l-6 76 14-50c3-11 17-7 14 4l-16 66c-2 26-8 50-18 72z" fill="#f2c39a" stroke="#c98a5e" stroke-width="2"/>
+    <g fill="none" stroke="${H}" stroke-width="2.2" stroke-linecap="round">
+      <circle cx="84" cy="150" r="20"/><circle cx="84" cy="150" r="12"/><circle cx="84" cy="150" r="4" fill="${H}"/>
+      <path d="M64 150c-6-8-6-16 0-22M104 150c6-8 6-16 0-22M84 130c-8-6-16-6-22 0M84 130c8-6 16-6 22 0"/>
+      <path d="M60 176q24 14 48 0M58 186q26 14 52 0M56 196q28 14 56 0" stroke-width="1.8"/>
+      <path d="M68 28v8M68 44v8M68 60v10M94 20v8M94 36v8M94 52v12M120 34v8M120 50v10"/>
+      <path d="M40 100q4-8 10-10M126 98q-4-6-8-8"/>
+    </g>
+    ${dots}
+    <circle cx="68" cy="22" r="3" fill="${H}"/><circle cx="94" cy="14" r="3" fill="${H}"/><circle cx="120" cy="28" r="3" fill="${H}"/>
+  </svg>`;
+}
+
+export function haldiBowl() {
+  return `<svg class="ill ill-haldi" viewBox="0 0 120 90" aria-hidden="true">
+    <ellipse cx="60" cy="40" rx="48" ry="12" fill="#ffb300"/>
+    <path d="M12 40c4 30 24 44 48 44s44-14 48-44" fill="#c8102e"/>
+    <path d="M14 48h92" stroke="#ffc93c" stroke-width="3" stroke-dasharray="4 5"/>
+    <ellipse cx="60" cy="40" rx="40" ry="8" fill="#ffd34d"/>
+    <circle cx="44" cy="38" r="4" fill="#ff8c00"/><circle cx="66" cy="36" r="3" fill="#ff8c00"/>
+    <path d="M84 10q16 -6 22 6M88 18q10-2 14 4" stroke="#2f8a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+export function tilakThali() {
+  return `<svg class="ill ill-thali" viewBox="0 0 120 90" aria-hidden="true">
+    <ellipse cx="60" cy="56" rx="54" ry="20" fill="#f1b93f"/><ellipse cx="60" cy="52" rx="48" ry="16" fill="#ffd970"/>
+    <path d="M14 56q46 22 92 0" stroke="#b9741c" stroke-width="2" fill="none" stroke-dasharray="3 4"/>
+    <ellipse cx="40" cy="50" rx="10" ry="4" fill="#c8102e"/><ellipse cx="62" cy="48" rx="9" ry="4" fill="#fff7ea"/>
+    <path d="M78 52h16l-3 8H81z" fill="#c96a1d"/><path d="M86 52c-3-4-2-9 0-13 2 4 3 9 0 13z" fill="#ff8c00"/>
+    <circle cx="50" cy="58" r="2.2" fill="#ff8c00"/><circle cx="56" cy="60" r="2.2" fill="#ffc93c"/><circle cx="68" cy="58" r="2.2" fill="#d0102e"/>
+  </svg>`;
+}
+
+export function leafPlate() {
+  return `<svg class="ill ill-leaf" viewBox="0 0 120 90" aria-hidden="true">
+    <path d="M8 60C20 20 90 10 114 34 100 70 40 84 8 60z" fill="#3f8f3a"/>
+    <path d="M10 60C40 52 80 40 112 34" stroke="#2a6a28" stroke-width="2.4" fill="none"/>
+    <circle cx="44" cy="50" r="9" fill="#fff7ea"/><circle cx="66" cy="44" r="7" fill="#ffb300"/><circle cx="84" cy="44" r="6" fill="#c8102e"/>
+    <circle cx="58" cy="58" r="5" fill="#ff8c00"/><path d="M30 60q6-6 12 0" stroke="#e8a87c" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+
+// ---------- 9 Dec scenes: tilak, haldi, mehndi (viewBox 400 × 300, ground at y = 0) ----------
+// props held at the folded hands (local person coords, hands at about y = -125)
+const P_THALI = `<g transform="translate(0 -122)"><ellipse rx="26" ry="8" fill="#f1b93f"/><ellipse cy="-2" rx="22" ry="6" fill="#ffd970"/>
+  <ellipse cx="-9" cy="-4" rx="5" ry="2.2" fill="#d0102e"/><ellipse cx="4" cy="-4" rx="4" ry="2" fill="#fff7ea"/>
+  <path d="M11 -6h8l-1.5 4h-5z" fill="#c96a1d"/><path class="flame" d="M15 -6c-2-3-1-6 0-8 1 2 2 5 0 8z" fill="#ff8c00"/></g>`;
+const P_GIFT = `<g transform="translate(0 -120)"><rect x="-18" y="-14" width="36" height="22" rx="3" fill="#c8102e"/><path d="M0 -14v22M-18 -3h36" stroke="#f1b93f" stroke-width="3"/>
+  <path d="M0 -14c-8-10-14-4-8 0M0 -14c8-10 14-4 8 0" stroke="#f1b93f" stroke-width="2.4" fill="none"/></g>`;
+const P_BOWL = `<g transform="translate(0 -122)"><path d="M-17 -2c2 12 10 17 17 17s15-5 17-17z" fill="#b9741c"/><ellipse cy="-2" rx="17" ry="5" fill="#ffc21a"/>
+  <circle cx="-5" cy="-3" r="2" fill="#ff9d00"/><circle cx="6" cy="-2" r="1.6" fill="#ff9d00"/></g>`;
+const P_COCONUT = `<g transform="translate(0 -122)"><ellipse rx="13" ry="11" fill="#7a4a24"/><path d="M-6 -8q6 -8 12 0" stroke="#d0102e" stroke-width="3" fill="none"/></g>`;
+
+function canopy(color, n = 30, sag = 18, y = -258) {
+  let out = '';
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, x = t * 400, yy = y + Math.sin(((t * 3) % 1) * Math.PI) * sag;
+    out += `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="5.5" fill="${i % 3 === 2 ? '#d0102e' : i % 2 ? '#ffc93c' : color}"/>`;
+  }
+  for (let i = 0; i < 9; i++) {
+    const x = 22 + i * 44, y0 = y + Math.sin(((x / 400 * 3) % 1) * Math.PI) * sag;
+    out += `<g class="ladi" style="transform-origin:${x}px ${y0}px;animation-delay:${i * 0.17}s">`;
+    for (let k = 1; k <= 4 + (i % 2) * 2; k++) out += `<circle cx="${x}" cy="${(y0 + k * 9).toFixed(1)}" r="4.2" fill="${k % 2 ? '#ff8c00' : '#ffc93c'}"/>`;
+    out += `</g>`;
+  }
+  return out;
+}
+function bulbs(y = -262, n = 22) {
+  let out = `<path d="M0 ${y}Q100 ${y + 26} 200 ${y}T400 ${y}" stroke="#2a1a2a" stroke-width="1.4" fill="none" opacity=".6"/>`;
+  for (let i = 0; i <= n; i++) { const t = i / n, x = t * 400, yy = y + Math.sin(t * Math.PI * 2) * 13 * (t < .5 ? 1 : -1) * 0 + Math.abs(Math.sin(t * Math.PI * 2)) * 13; out += `<circle class="bulb" cx="${x.toFixed(1)}" cy="${(yy + 3).toFixed(1)}" r="3.4" fill="${i % 3 ? '#fff1b8' : '#ff9fc8'}" style="animation-delay:${(i % 5) * 0.25}s"/>`; }
+  return out;
+}
+const SKA = '#e8a87c', SKB = '#dd9a6c', SKC = '#f2b98d';
+
+export function prewedScene(kind) {
+  if (kind === 'tilak') {
+    return `<svg class="ill pw-scene-svg" viewBox="0 -300 400 312" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <path d="M150 0l10-26h80l10 26z" fill="#c8102e"/><rect x="160" y="-30" width="80" height="6" rx="2" fill="${GOLD}"/>
+      <ellipse cx="200" cy="2" rx="190" ry="9" fill="#000" opacity=".15"/>
+      ${canopy('#ff8c00')}
+      ${woman({ x: 44, h: 150, skin: SKA, saree: '#d6246e', blouse: '#ffc93c', cls: 'bg-p' })}
+      ${man({ x: 356, h: 156, skin: SKB, kurta: '#0f6b6b', jacket: '#ffc93c', cls: 'bg-p' })}
+      ${man({ x: 116, h: 178, skin: SKB, kurta: '#f7e2b0', jacket: '#8a0a20', hair: '#9b948e', mustache: true, glasses: true, hold: P_THALI, cls: 'giver' })}
+      <g transform="translate(0 -26)">${man({ x: 200, h: 184, skin: SKA, kurta: '#fff1d6', jacket: '#c8102e', tilak: true, cls: 'groom' })}</g>
+      ${man({ x: 284, h: 172, skin: SKC, kurta: '#ff8c00', jacket: '#fff1d6', hold: P_GIFT })}
+    </svg>`;
+  }
+  if (kind === 'haldi') {
+    let splash = '';
+    for (let i = 0; i < 26; i++) splash += `<circle class="splash" cx="${(130 + Math.random() * 140).toFixed(0)}" cy="${(-150 - Math.random() * 70).toFixed(0)}" r="${(2 + Math.random() * 3).toFixed(1)}" fill="${i % 3 ? '#ffc21a' : '#ff9d00'}" style="animation-delay:${(Math.random() * 2).toFixed(2)}s"/>`;
+    return `<svg class="ill pw-scene-svg" viewBox="0 -300 400 312" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <ellipse cx="200" cy="2" rx="190" ry="9" fill="#000" opacity=".12"/>
+      ${canopy('#ffb300', 30, 14)}
+      <rect x="146" y="-22" width="108" height="22" rx="4" fill="#ffd23f" stroke="#b9741c" stroke-width="2"/>
+      ${woman({ x: 40, h: 150, skin: SKA, saree: '#2f8a3a', blouse: '#ffc93c', hold: P_BOWL })}
+      ${man({ x: 92, h: 166, skin: SKB, kurta: '#ffc93c', jacket: '#ff8c00', hold: P_BOWL })}
+      <g transform="translate(0 -18)">${man({ x: 172, h: 176, skin: SKA, kurta: '#ffe14d', pyjama: '#fff7ea', haldi: true, cls: 'groom' })}</g>
+      <g transform="translate(0 -18)">${woman({ x: 228, h: 166, skin: SKC, saree: '#ffcf1f', border: '#ff8c00', blouse: '#ffe680', haldi: true, cls: 'bride' })}</g>
+      ${woman({ x: 306, h: 156, skin: SKB, saree: '#d6246e', blouse: '#ffc93c', hold: P_BOWL })}
+      ${man({ x: 360, h: 168, skin: SKC, kurta: '#fff1d6', jacket: '#ffb300', mustache: true, hold: P_BOWL })}
+      <g class="splashes">${splash}</g>
+    </svg>`;
+  }
+  // mehndi
+  return `<svg class="ill pw-scene-svg" viewBox="0 -300 400 312" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <ellipse cx="200" cy="2" rx="190" ry="9" fill="#000" opacity=".18"/>
+    ${bulbs(-280)}${bulbs(-250)}
+    <path d="M150 -2l12-22h76l12 22z" fill="#d6246e"/><rect x="158" y="-28" width="84" height="6" rx="2" fill="${GOLD}"/>
+    ${woman({ x: 34, h: 148, skin: SKB, saree: '#ff8c00', blouse: '#2f8a3a', cls: 'clap' })}
+    ${man({ x: 82, h: 120, skin: SKC, kurta: '#ffc93c', jacket: '#d6246e', kid: true, cls: 'hop' })}
+    ${woman({ x: 128, h: 156, skin: SKA, saree: '#d6246e', blouse: '#ffc93c', cls: 'clap' })}
+    <g transform="translate(0 -26)">${woman({ x: 200, h: 172, skin: SKC, saree: '#2f8a3a', border: GOLD, blouse: '#d6246e', hands: '#c45a1c', cls: 'bride' })}</g>
+    ${woman({ x: 270, h: 160, skin: SKB, saree: '#c8102e', blouse: '#ffc93c', hair: '#4a3a34', cls: 'clap' })}
+    ${dholi().replace('<svg ', '<svg x="292" y="-150" width="66" height="132" ')}
+    ${man({ x: 370, h: 172, skin: SKB, kurta: '#f7e2b0', jacket: '#8a0a20', hair: '#9b948e', mustache: true, glasses: true })}
   </svg>`;
 }

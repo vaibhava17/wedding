@@ -2,7 +2,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger.js';
 import { setLang, initialLang, lang, onLang, t } from './i18n.js';
 import { initFloral } from './floral.js';
-import { groomOnHorse, bride, dholi, trumpeter, haveli, kid, hallMandap, familyNamaste } from './illustrations.js';
+import { createMusic } from './music.js';
+import { groomOnHorse, bride, dholi, trumpeter, haveli, kid, hallMandap, familyNamaste, prewedScene } from './illustrations.js';
 
 gsap.registerPlugin(ScrollTrigger);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -17,6 +18,14 @@ addEventListener('load', toTop);
 addEventListener('pageshow', (e) => { if (e.persisted && !document.getElementById('gate').hidden) toTop(); });
 
 const WEDDING = new Date('2026-12-10T11:00:00+05:30');
+
+// two versions of the invite: wedding only (default) or full, with the 9 Dec tilak / haldi / mehndi
+const qs = new URLSearchParams(location.search);
+const FULL = ['full', 'all'].includes((qs.get('invite') || '').toLowerCase()) || qs.has('full');
+if (FULL) {
+  document.getElementById('prewedding').hidden = false;
+  document.querySelectorAll('.pw-scene').forEach((el) => { el.innerHTML = prewedScene(el.dataset.scene); });
+}
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const smooth = (a, b, x) => { const k = clamp01((x - a) / (b - a)); return k * k * (3 - 2 * k); };
 const pad = (n) => String(n).padStart(2, '0');
@@ -106,18 +115,20 @@ addEventListener('pointerdown', (e) => {
   floral.burst(e.clientX, e.clientY, 14, 0.55);
 });
 
-// ---------- music (optional) ----------
-const MUSIC_SRC = ''; // e.g. 'assets/audio/shehnai.mp3'
-const music = $('#music');
+// ---------- music ----------
+// Original copyright-free ambience (js/music.js). To use a recorded track instead, put it in assets/audio/
+// and set MUSIC_SRC, e.g. 'assets/audio/shehnai.mp3'.
+const MUSIC_SRC = 'assets/audio/wedding-invitation.mp3'; // "Wedding Invitation" by sahilmadan (Pixabay)
 const musicBtn = $('#musicBtn');
-if (MUSIC_SRC) { music.src = MUSIC_SRC; musicBtn.hidden = false; }
+const music = createMusic($('#music'), { src: MUSIC_SRC });
+musicBtn.hidden = false;
 function setMusic(on) {
-  if (!MUSIC_SRC) return;
   musicBtn.setAttribute('aria-pressed', String(on));
-  if (on) { music.volume = 0.6; music.play().catch(() => musicBtn.setAttribute('aria-pressed', 'false')); }
-  else music.pause();
+  if (on) music.play(); else music.pause();
 }
-musicBtn.addEventListener('click', () => setMusic(music.paused));
+musicBtn.addEventListener('click', () => {
+  setMusic(!music.playing);
+});
 
 // ---------- gate: quick, smooth hand-off to the hero ----------
 const gate = $('#gate');
@@ -217,6 +228,18 @@ function saveTheDate(btn) {
   else window.open(GCAL, '_blank', 'noopener'); // Android: opens the Google Calendar app
 }
 $$('[data-save-date]').forEach((b) => b.addEventListener('click', () => saveTheDate(b)));
+const GCAL_PRE = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+  + '&text=' + encodeURIComponent('Tilkotsav, Haldi & Mehndi — Vibhor & Deepanshi')
+  + '&dates=20261209T063000Z/20261209T123000Z&ctz=Asia/Kolkata'
+  + '&location=' + encodeURIComponent('Royal Palm Hall, Hotel Sita Kiran, Bareilly')
+  + '&details=' + encodeURIComponent('तिलकोत्सव समारोह — दोपहर 12 बजे\nदोपहर का भोजन — दोपहर 02 बजे\nहल्दी और मेहंदी समारोह — दोपहर 03 बजे\n\nTilkotsav 12 PM · Lunch 02 PM · Haldi n Mehndi 03 PM');
+$('#savePre')?.addEventListener('click', (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (floral) floral.burst(r.left + r.width / 2, r.top, 36, 0.8);
+  toast(t('std.saved'));
+  if (isApple) location.href = 'assets/vibhor-deepanshi-tilak-haldi.ics';
+  else window.open(GCAL_PRE, '_blank', 'noopener');
+});
 
 // ---------- reveals ----------
 if (!reducedMotion) {
@@ -383,6 +406,58 @@ if (!reducedMotion) {
 } else {
   setDay(1);
   eventsEl.forEach((ev) => ev.classList.add('is-active'));
+}
+
+// ---------- 9 Dec (full invite): tilak → haldi → mehndi as you scroll ----------
+if (FULL) {
+  const pw = $('#prewedding'), pwScenes = $$('.pw-scene'), pwSteps = $$('.pw-step'), pwNotes = $$('.pw-note'), pwBg = $('.pw-bg');
+  const BG = [['#8a0a20', '#e0562a'], ['#ffb300', '#ffe066'], ['#1e5c24', '#5fae4a']]; // tilak, haldi, mehndi
+  const INK = ['#fffdf2', '#5a1f00', '#fffdf2'];
+  const pwHead = $('.pw-head');
+  const mixc = (a, b, k) => mix(a, b, k);
+  let pwIdx = -1;
+  function setPre(p) {
+    const f = p * 2; // 0 … 2 across three phases, each holds for a while
+    // each phase holds, then crossfades during the middle of the scroll between phases
+    const n = Math.min(1, Math.floor(f)), g = n + smooth(0.3, 0.7, f - n);
+    pwScenes.forEach((el, i) => {
+      const d = Math.abs(g - i);
+      el.style.opacity = String(Math.max(0, 1 - d * 1.15));
+      el.style.transform = `translateX(${(i - g) * 14}%) scale(${1 - Math.min(1, d) * 0.06})`;
+    });
+    const i0 = Math.min(1, Math.floor(g)), k = g - i0;
+    pwBg.style.setProperty('--pw-top', mixc(BG[i0][0], BG[i0 + 1][0], k));
+    pwBg.style.setProperty('--pw-bot', mixc(BG[i0][1], BG[i0 + 1][1], k));
+    const ink = mixc(INK[i0], INK[i0 + 1], k);
+    pwHead.style.color = ink;
+    pwHead.style.textShadow = k > 0.3 && i0 === 0 || (i0 === 1 && k < 0.7) ? '0 1px 0 rgb(255 255 255 / .35)' : '0 2px 10px rgb(0 0 0 / .25)';
+    pw.querySelector('.groom')?.style.setProperty('--tilak', String(11 * (1 - smooth(0.05, 0.3, p))));
+    const idx = Math.round(g);
+    if (idx !== pwIdx) {
+      pwSteps.forEach((el, i) => { el.classList.toggle('is-active', i === idx); el.classList.toggle('is-done', i < idx); });
+      pwNotes.forEach((el, i) => el.classList.toggle('is-active', i === idx));
+      if (pwIdx !== -1 && floral) { const r = pwSteps[idx].getBoundingClientRect(); floral.burst(r.left + r.width / 2, r.top, 24, 0.6); }
+      pwIdx = idx;
+    }
+  }
+  const pre = { p: 0, target: 0 };
+  setPre(0);
+  if (!reducedMotion) {
+    ScrollTrigger.create({
+      trigger: pw, start: 'top top', end: 'bottom bottom',
+      onUpdate: (st) => { pre.target = st.progress; },
+      onRefresh: (st) => { pre.target = pre.p = st.progress; setPre(pre.p); },
+    });
+    gsap.ticker.add((_, dtMs) => {
+      const dt = Math.min(dtMs, 50) / 1000, diff = pre.target - pre.p;
+      if (Math.abs(diff) < 0.0005) { if (pre.p !== pre.target) { pre.p = pre.target; setPre(pre.p); } return; }
+      const e = diff * (1 - Math.exp(-6 * dt));
+      pre.p += Math.sign(e) * Math.min(Math.abs(e), 0.9 * dt); // at most ~one phase per 1.1 s
+      setPre(pre.p);
+    });
+  } else {
+    pwScenes.forEach((el) => { el.style.position = 'relative'; el.style.opacity = 1; el.style.height = '50vh'; });
+  }
 }
 
 // ---------- kid's handwritten note ----------

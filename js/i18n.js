@@ -1,7 +1,7 @@
 // All invitation text, Hindi (as printed on the card) + English.
 export const STRINGS = {
   hi: {
-    'meta.title': 'विभोर संग दीपांशी — शुभ विवाह, 10 दिसम्बर 2026',
+    'meta.title': 'विभोर संग दीपांशी — शुभ विवाह निमंत्रण 💌',
     'ui.lang': 'English',
     'ui.langLabel': 'Switch to English',
     'ui.music': 'संगीत',
@@ -53,6 +53,19 @@ export const STRINGS = {
     'ev.4.name': 'वधू आगमन', 'ev.4.time': 'सायं 6:00 बजे', 'ev.4.note': 'दुल्हन का घर में स्वागत',
     'ev.hint': 'स्क्रॉल करें, दिन आगे बढ़ेगा',
 
+    'pre.kicker': 'विवाह पूर्व मांगलिक कार्यक्रम',
+    'pre.title': 'तिलकोत्सव समारोह',
+    'pre.date': 'बुधवार, 09/12/2026',
+    'pre.1.name': 'तिलकोत्सव समारोह', 'pre.1.time': 'दोपहर 12 बजे',
+    'pre.2.name': 'दोपहर का भोजन', 'pre.2.time': 'दोपहर 02 बजे',
+    'pre.3.name': 'हल्दी और मेहंदी समारोह', 'pre.3.time': 'दोपहर 03 बजे',
+    'pre.at': 'स्थान',
+    'pre.venue': 'रॉयल पाम हॉल',
+    'pre.hotel': 'होटल सीता किरण, बरेली',
+    'pre.save': '9 दिसम्बर सेव करें',
+    'pre.p1.name': 'तिलकोत्सव समारोह', 'pre.p1.time': 'दोपहर 12 बजे', 'pre.p1.note': 'दोपहर का भोजन — दोपहर 02 बजे',
+    'pre.p2.name': 'हल्दी समारोह', 'pre.p2.time': 'दोपहर 03 बजे', 'pre.p2.note': 'दोनों परिवारों संग हल्दी की रस्म',
+    'pre.p3.name': 'मेहंदी समारोह', 'pre.p3.time': 'दोपहर 03 बजे से', 'pre.p3.note': 'पूरे परिवार संग मेहंदी, गीत और ढोलक',
     'venue.label': 'विवाह स्थल',
     'venue.name': 'होटल सीता किरण',
     'venue.addr': 'सिविल लाइन्स, बरेली',
@@ -92,7 +105,7 @@ export const STRINGS = {
   },
 
   en: {
-    'meta.title': 'Vibhor & Deepanshi — Wedding, 10 December 2026',
+    'meta.title': 'Vibhor & Deepanshi — You & your family are invited 💌',
     'ui.lang': 'हिंदी',
     'ui.langLabel': 'हिंदी में देखें',
     'ui.music': 'Music',
@@ -144,6 +157,19 @@ export const STRINGS = {
     'ev.4.name': 'Vadhu Aagman', 'ev.4.time': '6:00 PM', 'ev.4.note': 'Welcoming the bride home',
     'ev.hint': 'Keep scrolling to move through the day',
 
+    'pre.kicker': 'Before the wedding',
+    'pre.title': 'Tilkotsav Ceremony',
+    'pre.date': 'Wednesday, 09/12/2026',
+    'pre.1.name': 'Tilkotsav Ceremony', 'pre.1.time': '12 PM',
+    'pre.2.name': 'Lunch', 'pre.2.time': '02 PM',
+    'pre.3.name': 'Haldi n Mehndi Ceremony', 'pre.3.time': '03 PM',
+    'pre.at': 'At',
+    'pre.venue': 'Royal Palm Hall',
+    'pre.hotel': 'Hotel Sita Kiran, Bareilly',
+    'pre.save': 'Save 9 December',
+    'pre.p1.name': 'Tilkotsav Ceremony', 'pre.p1.time': '12 PM', 'pre.p1.note': 'Lunch at 02 PM',
+    'pre.p2.name': 'Haldi Ceremony', 'pre.p2.time': '03 PM', 'pre.p2.note': 'Haldi with both families',
+    'pre.p3.name': 'Mehndi Ceremony', 'pre.p3.time': 'from 03 PM', 'pre.p3.note': 'Mehndi, songs and dholak with the whole family',
     'venue.label': 'Venue',
     'venue.name': 'Hotel Seeta Kiran',
     'venue.addr': 'Civil Lines, Bareilly',

@@ -19,6 +19,8 @@ python3 -m http.server 5174
 | `/wedding/` | Hindi (default) |
 | `/wedding/?lang=en` | English |
 | `/wedding/?to=Sharma%20Parivar` | Doors greet "आदरणीय Sharma Parivar" — personalise per family |
+| `/wedding/?invite=full` | **Full invite**: adds the 9 Dec Tilkotsav / lunch / Haldi n Mehndi section (Royal Palm Hall) |
+| `/wedding/?invite=full&to=Sharma%20Parivar&lang=en` | params combine |
 
 ## Sections
 
@@ -39,7 +41,7 @@ python3 -m http.server 5174
 ## Customise
 
 - **Text**: `js/i18n.js` (`hi` + `en`).
-- **Music**: add an mp3 under `assets/audio/` and set `MUSIC_SRC` in `js/main.js`.
+- **Music**: `assets/audio/wedding-invitation.mp3` — "Wedding Invitation" by sahilmadan (Pixabay), set via `MUSIC_SRC` in `js/main.js`. Starts when the doors open, loops; ♪ button toggles. Clear `MUSIC_SRC` to fall back to the generated Raag Yaman ambience in `js/music.js`.
 - **Characters**: `js/illustrations.js` (hand-built SVG).
 - **Colours**: tokens at top of `css/style.css`.
 

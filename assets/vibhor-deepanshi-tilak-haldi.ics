@@ -1,0 +1,29 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Vibhor & Deepanshi//Wedding//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VTIMEZONE
+TZID:Asia/Kolkata
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0530
+TZOFFSETTO:+0530
+TZNAME:IST
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:vibhor-deepanshi-tilak-20261209@agarwal-family
+DTSTAMP:20261027T000000Z
+DTSTART;TZID=Asia/Kolkata:20261209T120000
+DTEND;TZID=Asia/Kolkata:20261209T180000
+SUMMARY:Tilkotsav, Haldi & Mehndi — Vibhor & Deepanshi
+LOCATION:Royal Palm Hall\, Hotel Sita Kiran\, Bareilly
+DESCRIPTION:तिलकोत्सव समारोह — दोपहर 12 बजे\nदोपहर का भोजन — दोपहर 02 बजे\nहल्दी और मेहंदी समारोह — दोपहर 03 बजे\n\nTilkotsav 12 PM · Lunch 02 PM · Haldi n Mehndi 03 PM
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:Tilkotsav at 12 PM
+END:VALARM
+END:VEVENT
+END:VCALENDAR
