@@ -118,7 +118,7 @@ addEventListener('pointerdown', (e) => {
 // ---------- music ----------
 // Original copyright-free ambience (js/music.js). To use a recorded track instead, put it in assets/audio/
 // and set MUSIC_SRC, e.g. 'assets/audio/shehnai.mp3'.
-const MUSIC_SRC = 'assets/audio/wedding-invitation.mp3'; // "Wedding Invitation" by sahilmadan (Pixabay)
+const MUSIC_SRC = 'assets/audio/adharam-madhuram.m4a'; // Adharam Madhuram (Madhurashtakam), flute instrumental
 const musicBtn = $('#musicBtn');
 const music = createMusic($('#music'), { src: MUSIC_SRC });
 musicBtn.hidden = false;

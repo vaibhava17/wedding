@@ -41,7 +41,7 @@ python3 -m http.server 5174
 ## Customise
 
 - **Text**: `js/i18n.js` (`hi` + `en`).
-- **Music**: `assets/audio/wedding-invitation.mp3` — "Wedding Invitation" by sahilmadan (Pixabay), set via `MUSIC_SRC` in `js/main.js`. Starts when the doors open, loops; ♪ button toggles. Clear `MUSIC_SRC` to fall back to the generated Raag Yaman ambience in `js/music.js`.
+- **Music**: `assets/audio/adharam-madhuram.m4a` — Adharam Madhuram (Madhurashtakam) flute instrumental, 93 s loop, AAC 128k, set via `MUSIC_SRC` in `js/main.js`. Starts when the doors open, loops; ♪ button toggles. Clear `MUSIC_SRC` to fall back to the generated Raag Yaman ambience in `js/music.js`.
 - **Characters**: `js/illustrations.js` (hand-built SVG).
 - **Colours**: tokens at top of `css/style.css`.
 
