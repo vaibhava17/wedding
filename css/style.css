@@ -208,9 +208,9 @@ html[data-lang="hi"] #langBtn span { font-family: var(--body); }
   padding: 0 .08em;
 }
 html[data-lang="en"] .name { line-height: 1.02; font-size: clamp(3.2rem, 15vw, 7.8rem); }
-.names-mid { display: flex; align-items: center; gap: 12px; margin: -2px 0 2px; }
-.knot { width: clamp(80px, 22vw, 130px); height: auto; overflow: visible; }
-.sang { font-family: var(--serif); font-size: clamp(1.4rem, 5vw, 2rem); color: var(--haldi); }
+.names-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; margin: 2px 0 6px; flex: none; }
+.knot { display: block; width: clamp(96px, 26vw, 132px); height: auto; aspect-ratio: 2 / 1; overflow: visible; }
+.sang { display: block; margin-top: -4px; font-family: var(--serif); font-size: clamp(1.4rem, 5vw, 2rem); line-height: 1; color: var(--haldi); text-align: center; }
 .hero-date { font-family: var(--display); font-size: clamp(1.3rem, 5vw, 2rem); color: var(--kagaz); margin-bottom: 26px; }
 .countdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 420px; margin: 0 auto; }
 .countdown div {
@@ -637,8 +637,15 @@ html.js .reveal { opacity: 0; transform: translateY(18px); }
   .events::before { left: 29px; }
 }
 @media (min-width: 900px) {
-  .names { flex-direction: row; gap: 28px; }
-  .names-mid { flex-direction: column; gap: 4px; }
+  /* equal halves around the knot, so the knot sits exactly at the page centre */
+  .names { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: clamp(16px, 2vw, 32px); width: min(100%, 1400px); margin-inline: auto; }
+  .name-groom { justify-self: end; }
+  .name-bride { justify-self: start; }
+  .names-mid { margin: 0; }
+  .knot { width: clamp(110px, 9vw, 150px); }
+  .name { font-size: clamp(3.6rem, 6.4vw, 7.6rem); white-space: nowrap; }
+  html[data-lang="en"] .name { font-size: clamp(3.4rem, 6.2vw, 7.2rem); }
+  .hero-inner { max-width: none; width: 100%; }
   .journey-ui { grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; column-gap: 40px; }
   .journey-head { grid-column: 1 / -1; }
   .clock { grid-row: 2; align-self: start; margin-top: 8vh; }
