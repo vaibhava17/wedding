@@ -3,7 +3,7 @@
 Live: https://heyvaibhav.dev/wedding-invitation/
 
 Single-page, mobile-first digital invitation (Hindi + English). Plain HTML/CSS/ES modules, no build step.
-Content is taken word for word from the printed card (Thursday 10 Dec 2026, Hotel Seeta Kiran, Civil Lines, Bareilly).
+Content is taken word for word from the printed card (Thursday 10 Dec 2026, Hotel Sita Kiran, Civil Lines, Bareilly).
 
 ## Run locally
 

@@ -18,7 +18,7 @@ DTSTAMP:20261027T000000Z
 DTSTART;TZID=Asia/Kolkata:20261210T110000
 DTEND;TZID=Asia/Kolkata:20261210T190000
 SUMMARY:Vibhor & Deepanshi — Wedding (विभोर संग दीपांशी)
-LOCATION:Hotel Seeta Kiran\, Civil Lines\, Bareilly
+LOCATION:Hotel Sita Kiran\, Civil Lines\, Bareilly
 DESCRIPTION:शुभ विवाह — विभोर संग दीपांशी\n\nघुड़चढ़ी — प्रातः 11:00 बजे\nबारात प्रस्थान — अपराह्न 12:00 बजे\nजयमाला एवं प्रीतिभोज — अपराह्न 2:00 बजे\nवधू आगमन — सायं 6:00 बजे\n\nGhudchadhi 11:00 AM · Baraat 12:00 PM · Jaimala & lunch 2:00 PM · Vadhu Aagman 6:00 PM
 BEGIN:VALARM
 TRIGGER:-P1D

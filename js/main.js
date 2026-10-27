@@ -216,7 +216,7 @@ function toast(msg) {
 const GCAL = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
   + '&text=' + encodeURIComponent('Vibhor & Deepanshi — Wedding (विभोर संग दीपांशी)')
   + '&dates=20261210T053000Z/20261210T133000Z&ctz=Asia/Kolkata'
-  + '&location=' + encodeURIComponent('Hotel Seeta Kiran, Civil Lines, Bareilly')
+  + '&location=' + encodeURIComponent('Hotel Sita Kiran, Civil Lines, Bareilly')
   + '&details=' + encodeURIComponent('शुभ विवाह — विभोर संग दीपांशी\n\nघुड़चढ़ी — प्रातः 11:00 बजे\nबारात प्रस्थान — अपराह्न 12:00 बजे\nजयमाला एवं प्रीतिभोज — अपराह्न 2:00 बजे\nवधू आगमन — सायं 6:00 बजे\n\n' + location.href.split('?')[0]);
 const ICS = 'assets/vibhor-deepanshi-wedding.ics';
 const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
@@ -624,7 +624,7 @@ if (!reducedMotion) {
 
 // "Open in Maps": Apple Maps on iPhone/Mac, Google Maps everywhere else
 if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) {
-  $('#mapsBtn').href = 'https://maps.apple.com/?q=' + encodeURIComponent('Hotel Seeta Kiran') + '&address=' + encodeURIComponent('Civil Lines, Bareilly, Uttar Pradesh');
+  $('#mapsBtn').href = 'https://maps.apple.com/?q=' + encodeURIComponent('Hotel Sita Kiran') + '&address=' + encodeURIComponent('Civil Lines, Bareilly, Uttar Pradesh');
 }
 
 // ---------- finale (pinned) ----------
