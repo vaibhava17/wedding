@@ -52,6 +52,7 @@ export const STRINGS = {
     'ev.3.name': 'जयमाला एवं प्रीतिभोज', 'ev.3.time': 'अपराह्न 2:00 बजे', 'ev.3.note': 'वरमाला और प्रीतिभोज',
     'ev.4.name': 'वधू आगमन', 'ev.4.time': 'सायं 6:00 बजे', 'ev.4.note': 'दुल्हन का घर में स्वागत',
     'ev.hint': 'स्क्रॉल करें, दिन आगे बढ़ेगा',
+    'ev.replay': 'फिर से देखें',
 
     'pre.kicker': 'विवाह पूर्व मांगलिक कार्यक्रम',
     'pre.title': 'तिलकोत्सव समारोह',
@@ -156,6 +157,7 @@ export const STRINGS = {
     'ev.3.name': 'Jaimala & lunch', 'ev.3.time': '2:00 PM', 'ev.3.note': 'Exchange of garlands, followed by the wedding feast',
     'ev.4.name': 'Vadhu Aagman', 'ev.4.time': '6:00 PM', 'ev.4.note': 'Welcoming the bride home',
     'ev.hint': 'Keep scrolling to move through the day',
+    'ev.replay': 'Replay the day',
 
     'pre.kicker': 'Before the wedding',
     'pre.title': 'Tilkotsav Ceremony',

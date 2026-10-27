@@ -238,10 +238,10 @@
           <div class="pw-floor"></div>
         </div>
         <div class="pw-panel">
-          <ol class="pw-steps">
-            <li class="pw-step is-active"><b data-i18n="pre.p1.name">तिलकोत्सव समारोह</b><span data-i18n="pre.p1.time">दोपहर 12 बजे</span></li>
-            <li class="pw-step"><b data-i18n="pre.p2.name">हल्दी समारोह</b><span data-i18n="pre.p2.time">दोपहर 03 बजे</span></li>
-            <li class="pw-step"><b data-i18n="pre.p3.name">मेहंदी समारोह</b><span data-i18n="pre.p3.time">दोपहर 03 बजे से</span></li>
+          <ol class="pw-steps" aria-label="Choose a ceremony">
+            <li class="pw-step is-active"><button type="button" class="pw-tab" data-phase="0" aria-pressed="true"><b data-i18n="pre.p1.name">तिलकोत्सव समारोह</b><span data-i18n="pre.p1.time">दोपहर 12 बजे</span></button></li>
+            <li class="pw-step"><button type="button" class="pw-tab" data-phase="1" aria-pressed="false"><b data-i18n="pre.p2.name">हल्दी समारोह</b><span data-i18n="pre.p2.time">दोपहर 03 बजे</span></button></li>
+            <li class="pw-step"><button type="button" class="pw-tab" data-phase="2" aria-pressed="false"><b data-i18n="pre.p3.name">मेहंदी समारोह</b><span data-i18n="pre.p3.time">दोपहर 03 बजे से</span></button></li>
           </ol>
           <div class="pw-notes">
             <p class="pw-note is-active" data-i18n="pre.p1.note">दोपहर का भोजन — दोपहर 02 बजे</p>
@@ -273,6 +273,7 @@
           <div class="j-baraat" id="jBaraat"></div>
           <div class="j-bride" id="jBride"></div>
           <div class="jlights" id="jLights"></div>
+          <div class="j-progress" aria-hidden="true"><i id="jProgress"></i></div>
         </div>
         <div class="journey-ui">
           <header class="journey-head">
@@ -284,6 +285,7 @@
             </h2>
             <p class="j-date" data-i18n="ev.date">गुरूवार, 10 दिसम्बर 2026</p>
           </header>
+          <button class="chip-replay" id="jReplay" type="button" hidden><span aria-hidden="true">↻</span> <span data-i18n="ev.replay">फिर से देखें</span></button>
           <div class="clock" aria-hidden="true"><b id="clockTime">11:00</b><span id="clockAmpm">AM</span></div>
           <ol class="events" id="events">
             <li class="event" data-hour="11">

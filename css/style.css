@@ -268,9 +268,9 @@ html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
 .pk-body { font-family: var(--serif); font-size: 1.05em; line-height: 1.7; max-width: 46ch; }
 
 /* ---------- pre-wedding (full invite only): tilak → haldi → mehndi, pinned like the day journey ---------- */
-.prewed { position: relative; height: 380svh; background: #7a0f24; }
+.prewed { position: relative; background: #7a0f24; }
 .pw-stage {
-  position: -webkit-sticky; position: sticky; top: 0; height: 100vh; height: 100svh; height: 100dvh; overflow: hidden;
+  position: relative; min-height: 100vh; min-height: 100svh; height: 100svh; overflow: hidden;
   display: grid; grid-template-rows: auto 1fr auto;
   padding: calc(64px + env(safe-area-inset-top)) 0 calc(14px + env(safe-area-inset-bottom));
 }
@@ -302,7 +302,12 @@ html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
   width: min(560px, calc(100% - 24px)); justify-self: center;
 }
 .pw-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
-.pw-step { position: relative; padding: 8px 4px 6px; border-radius: 14px; display: grid; gap: 2px; opacity: .55; transition: opacity .35s, background-color .35s, transform .35s var(--ease); }
+.pw-step { position: relative; border-radius: 14px; opacity: .6; transition: opacity .35s, background-color .35s, transform .35s var(--ease); }
+.pw-tab { all: unset; box-sizing: border-box; width: 100%; height: 100%; padding: 8px 4px 6px; border-radius: 14px; display: grid; gap: 2px; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent; }
+.pw-tab:focus-visible { outline: 3px solid #2f8a3a; outline-offset: 2px; }
+.pw-step:not(.is-active):hover { opacity: .85; }
+.pw-step:not(.is-active) .pw-tab { box-shadow: inset 0 0 0 1.5px rgb(47 138 58 / .35); }
+.pw-step:not(.is-active)::after { content: "›"; position: absolute; right: 7px; top: 6px; font-weight: 700; color: #2f8a3a; }
 .pw-step b { font-family: var(--display); font-weight: 400; font-size: clamp(.9rem, 3.6vw, 1.1rem); line-height: 1.15; color: #8a3b12; }
 .pw-step span { font-size: .8rem; font-weight: 700; color: #2f8a3a; }
 .pw-step.is-active { opacity: 1; background: #fff1a8; transform: translateY(-2px); box-shadow: inset 0 0 0 2px #f1b93f; }
@@ -319,17 +324,27 @@ html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
   .pw-scenes { grid-row: 2; }
   .pw-panel { grid-row: 2; align-self: center; width: 100%; margin: 0; }
 }
-@media (hover: none) and (pointer: coarse) { .prewed { height: 330svh; } }
 @media (prefers-reduced-motion: reduce) {
   .prewed { height: auto; }
   .pw-stage { position: relative; }
 }
 
 /* ---------- journey: the day passes ---------- */
-.journey { position: relative; height: 560svh; background: var(--raat); }
-.journey-stage { position: -webkit-sticky; position: sticky; top: 0; height: 100vh; height: 100svh; height: 100dvh; overflow: hidden; }
+.journey { position: relative; background: var(--raat); }
+.journey-stage { position: relative; height: 100vh; height: 100svh; height: 100dvh; overflow: hidden; }
+html.day-locked, html.day-locked body { overflow: hidden; overscroll-behavior: none; }
+html.day-locked .journey { touch-action: pan-down; }
+.j-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgb(255 255 255 / .18); z-index: 3; opacity: 0; transition: opacity .4s; }
+.j-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--haldi), var(--genda)); transform: scaleX(0); transform-origin: 0 50%; }
+.journey.is-playing .j-progress { opacity: 1; }
+.journey.is-watched .j-progress { opacity: 0; }
+.chip-replay {
+  pointer-events: auto; justify-self: center; margin-top: 8px; grid-column: 1 / -1;
+  min-height: 38px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid rgb(255 241 184 / .6); background: rgb(26 16 54 / .55); color: var(--gold-1);
+  font: 600 .95rem var(--body); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
 @media (hover: none) and (pointer: coarse) {
-  .journey { height: 480svh; }
   .event.is-active { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgb(138 10 32 / .9); }
   .sun i { box-shadow: 0 0 40px 14px rgb(255 190 80 / .5); }
   .clouds span { animation: none; }
@@ -599,7 +614,7 @@ html.js .reveal { opacity: 0; transform: translateY(18px); }
   .venue-grid { grid-template-columns: 1fr; }
   .venue-info { text-align: center; }
   .venue-chips, .venue-actions { justify-content: center; }
-  .stage-frame { max-width: 460px; justify-self: center; }
+  .stage-frame { max-width: 460px; justify-self: center; order: -1; }
   .fam-grid { grid-template-columns: 1fr; gap: 56px; max-width: 460px; }
   .fam-card-main { transform: none; order: -1; }
   .kid-wrap { grid-template-columns: 1fr; justify-items: center; }

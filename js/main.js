@@ -377,35 +377,86 @@ function setDay(p) {
     activeIdx = idx;
   }
 }
-// ---------- the day passes as you scroll ----------
-// Native scroll drives a *target* time; the shown time chases it with damping and a speed cap, so a slow
-// scroll tracks precisely and a hard flick glides at a steady pace instead of racing. Every hour of the day
-// gets the same scroll distance (linear mapping), so the pace is constant across events.
-const MAX_HOURS_PER_SEC = 3;
-const day = { p: 0, target: 0, last: -1 };
-setDay(0);
+// ---------- the wedding day plays by itself; guests watch it once before scrolling on ----------
+// When the section reaches the top, scrolling down is held and the day autoplays at a constant pace,
+// pausing briefly at each event. Scrolling up is always allowed (pauses the film); coming back resumes it.
+// Once it has played to the end, scrolling is released for good and a replay button appears.
+const DAY = { DURATION: 9 }; // seconds for the whole day, one constant pace
+const day = { h: H0, watched: false, locked: false, prevY: window.scrollY };
+const jProgress = $('#jProgress'), jReplay = $('#jReplay');
+const hourToP = (hr) => (hr - H0) / (H1 - H0);
+function renderDay() { setDay(hourToP(day.h)); }
+renderDay();
 journey.classList.add('is-still');
-ScrollTrigger.config({ ignoreMobileResize: true });
-let journeyST = null;
-if (!reducedMotion) {
-  journeyST = ScrollTrigger.create({
-    trigger: '.journey', start: 'top top', end: 'bottom bottom',
-    onUpdate: (st) => { day.target = st.progress; },
-    onRefresh: (st) => { day.target = st.progress; day.p = st.progress; setDay(day.p); },
-  });
-  const maxStep = MAX_HOURS_PER_SEC / (H1 - H0); // progress per second
-  gsap.ticker.add((_, dtMs) => {
-    const dt = Math.min(dtMs, 50) / 1000;
-    const diff = day.target - day.p;
-    if (Math.abs(diff) < 0.0004) { if (day.p !== day.target) { day.p = day.target; setDay(day.p); } return; }
-    const eased = diff * (1 - Math.exp(-7 * dt));
-    const capped = Math.sign(eased) * Math.min(Math.abs(eased), maxStep * dt);
-    day.p += capped;
-    setDay(day.p);
-  });
-} else {
-  setDay(1);
+
+const film = gsap.timeline({ paused: true, onUpdate: () => { jProgress.style.transform = `scaleX(${film.progress()})`; }, onComplete: finishDay });
+// one continuous, evenly paced pass through the day (no stops)
+film.to(day, { h: H1, duration: DAY.DURATION, ease: 'none', onUpdate: renderDay });
+const journeyTop = () => journey.getBoundingClientRect().top + window.scrollY;
+const htmlEl = document.documentElement;
+
+function lockDay() {
+  if (day.locked) return;
+  day.locked = true;
+  htmlEl.classList.add('day-locked');
+  window.scrollTo(0, journeyTop());
+  journey.classList.add('is-playing');
+  film.play();
+}
+function unlockDay(escapeUp = false) {
+  if (!day.locked) return;
+  day.locked = false;
+  htmlEl.classList.remove('day-locked');
+  journey.classList.remove('is-playing');
+  if (!day.watched) film.pause();
+  // the gesture that escaped was swallowed while locked; move the page so it visibly responds
+  if (escapeUp) { day.prevY = journeyTop() - innerHeight * 0.4; window.scrollTo({ top: day.prevY, behavior: 'smooth' }); }
+}
+function finishDay() {
+  day.watched = true;
+  unlockDay();
+  journey.classList.add('is-watched');
+  jReplay.hidden = false;
+  if (floral) floral.burst(innerWidth / 2, innerHeight * 0.55, 50, 0.9);
+}
+jReplay.addEventListener('click', () => {
+  day.h = H0; renderDay();
+  window.scrollTo({ top: journeyTop(), behavior: 'smooth' });
+  film.restart();
+});
+
+if (reducedMotion) {
+  day.h = H1; renderDay(); day.watched = true; jReplay.hidden = false;
   eventsEl.forEach((ev) => ev.classList.add('is-active'));
+} else {
+  // engage when the section's top is reached (or passed) while moving down
+  addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (opened && !day.watched && !day.locked && y >= journeyTop() - 2 && y > day.prevY) lockDay();
+    day.prevY = window.scrollY;
+  }, { passive: true });
+
+  // while locked: block downward input, let upward input escape
+  addEventListener('wheel', (e) => {
+    if (!day.locked) return;
+    if (e.deltaY < 0) { unlockDay(true); e.preventDefault(); return; }
+    e.preventDefault();
+  }, { passive: false });
+  let ty = null;
+  addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (!day.locked || ty === null) return;
+    const dy = e.touches[0].clientY - ty; // finger moving down = scrolling up
+    if (dy > 12) { unlockDay(true); if (e.cancelable) e.preventDefault(); return; }
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  addEventListener('keydown', (e) => {
+    if (!day.locked) return;
+    if (['ArrowUp', 'PageUp', 'Home'].includes(e.key)) { unlockDay(true); e.preventDefault(); return; }
+    if (['ArrowDown', 'PageDown', 'End', ' ', 'Spacebar'].includes(e.key)) e.preventDefault();
+  });
+  // never leave it playing hidden in a background tab
+  document.addEventListener('visibilitychange', () => { if (document.hidden) film.pause(); else if (day.locked) film.play(); });
 }
 
 // ---------- 9 Dec (full invite): tilak → haldi → mehndi as you scroll ----------
@@ -431,7 +482,6 @@ if (FULL) {
     const ink = mixc(INK[i0], INK[i0 + 1], k);
     pwHead.style.color = ink;
     pwHead.style.textShadow = k > 0.3 && i0 === 0 || (i0 === 1 && k < 0.7) ? '0 1px 0 rgb(255 255 255 / .35)' : '0 2px 10px rgb(0 0 0 / .25)';
-    pw.querySelector('.groom')?.style.setProperty('--tilak', String(11 * (1 - smooth(0.05, 0.3, p))));
     const idx = Math.round(g);
     if (idx !== pwIdx) {
       pwSteps.forEach((el, i) => { el.classList.toggle('is-active', i === idx); el.classList.toggle('is-done', i < idx); });
@@ -440,24 +490,31 @@ if (FULL) {
       pwIdx = idx;
     }
   }
-  const pre = { p: 0, target: 0 };
+  // tap a ceremony to move the scene there (no scroll-driven animation here)
+  const pre = { p: 0 };
+  const pwTabs = $$('.pw-tab');
   setPre(0);
-  if (!reducedMotion) {
-    ScrollTrigger.create({
-      trigger: pw, start: 'top top', end: 'bottom bottom',
-      onUpdate: (st) => { pre.target = st.progress; },
-      onRefresh: (st) => { pre.target = pre.p = st.progress; setPre(pre.p); },
+  function goPhase(i) {
+    const to = i / 2, dist = Math.abs(to - pre.p);
+    pwTabs.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+    if (dist < 0.001) return;
+    gsap.to(pre, {
+      p: to, duration: reducedMotion ? 0 : 0.5 + dist * 1.2, ease: 'power2.inOut', overwrite: true,
+      onUpdate: () => setPre(pre.p),
     });
-    gsap.ticker.add((_, dtMs) => {
-      const dt = Math.min(dtMs, 50) / 1000, diff = pre.target - pre.p;
-      if (Math.abs(diff) < 0.0005) { if (pre.p !== pre.target) { pre.p = pre.target; setPre(pre.p); } return; }
-      const e = diff * (1 - Math.exp(-6 * dt));
-      pre.p += Math.sign(e) * Math.min(Math.abs(e), 0.9 * dt); // at most ~one phase per 1.1 s
-      setPre(pre.p);
-    });
-  } else {
-    pwScenes.forEach((el) => { el.style.position = 'relative'; el.style.opacity = 1; el.style.height = '50vh'; });
   }
+  pwTabs.forEach((b) => b.addEventListener('click', () => { const i = Number(b.dataset.phase); goPhase(i); if (i === 0) drawTilak(0.5); }));
+
+  // the tilak is applied on its own: when the section comes into view, and whenever Tilkotsav is chosen
+  const groom = pw.querySelector('[data-scene="tilak"] .groom');
+  const tk = { v: 11 };
+  const paintTilak = () => groom?.style.setProperty('--tilak', tk.v.toFixed(2));
+  paintTilak();
+  function drawTilak(delay = 0.4) {
+    if (reducedMotion) { tk.v = 0; paintTilak(); return; }
+    gsap.fromTo(tk, { v: 11 }, { v: 0, duration: 0.9, delay, ease: 'power2.inOut', overwrite: true, onUpdate: paintTilak });
+  }
+  new IntersectionObserver(([e], io) => { if (e.isIntersecting) { drawTilak(0.6); io.disconnect(); } }, { threshold: 0.45 }).observe(pw);
 }
 
 // ---------- kid's handwritten note ----------
@@ -511,8 +568,9 @@ if (!reducedMotion) {
   drawDrapes(0);
   const cur = { t: 0 };
   ScrollTrigger.create({
-    trigger: '.stage-frame', start: 'top 70%', end: 'center 45%',
-    onUpdate: (st) => gsap.to(cur, { t: st.progress, duration: 0.6, ease: 'power2.out', overwrite: true, onUpdate: () => drawDrapes(cur.t) }),
+    // opens while the venue section scrolls up; fully open once its top reaches the top of the screen
+    trigger: '#venue', start: 'top 85%', end: 'top top',
+    onUpdate: (st) => gsap.to(cur, { t: st.progress, duration: 0.3, ease: 'power2.out', overwrite: true, onUpdate: () => drawDrapes(cur.t) }),
   });
 } else {
   drawDrapes(1);
@@ -629,5 +687,5 @@ $('#shareBtn').addEventListener('click', async () => {
 let rT;
 addEventListener('resize', () => {
   clearTimeout(rT);
-  rT = setTimeout(() => { measureJourney(); fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); setDay(day.p); }, 150);
+  rT = setTimeout(() => { measureJourney(); fitPatrika(); layoutFinale(); ScrollTrigger.refresh(); renderDay(); if (day.locked) window.scrollTo(0, journeyTop()); }, 150);
 });
