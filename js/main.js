@@ -377,11 +377,29 @@ function setDay(p) {
     activeIdx = idx;
   }
 }
+// ---------- on-device debug panel: add ?debug=1 to the URL ----------
+const DEBUG = new URLSearchParams(location.search).has('debug');
+let dbgEl = null;
+function dbg(evt = '') {
+  if (!DEBUG) return;
+  if (!dbgEl) {
+    dbgEl = document.createElement('pre');
+    Object.assign(dbgEl.style, { position: 'fixed', left: '6px', bottom: '6px', zIndex: 999, margin: 0, padding: '6px 8px', font: '11px/1.35 ui-monospace,monospace', color: '#0f0', background: 'rgba(0,0,0,.78)', borderRadius: '8px', pointerEvents: 'none', maxWidth: '96vw', whiteSpace: 'pre-wrap' });
+    document.documentElement.appendChild(dbgEl);
+  }
+  const jt = typeof journeyTop === 'function' ? Math.round(journeyTop()) : '?';
+  dbgEl.textContent = `ua: ${navigator.userAgent.match(/(CriOS|Version)\/[\d.]+/)?.[0] || '?'} iOS ${navigator.userAgent.match(/OS (\d+_\d+)/)?.[1] || '-'}
+reduceMotion: ${reducedMotion}  opened: ${opened}
+scrollY: ${Math.round(window.scrollY)}  journeyTop: ${jt}  body: ${document.body.style.position || 'static'}
+locked: ${day?.locked}  watched: ${day?.watched}  film: ${film ? (film.progress() * 100).toFixed(0) + '%' : '-'}
+last: ${evt}`;
+}
+
 // ---------- the wedding day plays by itself; guests watch it once before scrolling on ----------
 // When the section reaches the top, scrolling down is held and the day autoplays at a constant pace,
 // pausing briefly at each event. Scrolling up is always allowed (pauses the film); coming back resumes it.
 // Once it has played to the end, scrolling is released for good and a replay button appears.
-const DAY = { DURATION: 9 }; // seconds for the whole day, one constant pace
+const DAY = { DURATION: 5 }; // seconds for the whole day, one constant pace
 const day = { h: H0, watched: false, locked: false, prevY: window.scrollY, noRelockUntil: 0 };
 const jProgress = $('#jProgress'), jReplay = $('#jReplay');
 const hourToP = (hr) => (hr - H0) / (H1 - H0);
@@ -414,6 +432,7 @@ function thawPage(toY = frozenY) {
 }
 function lockDay() {
   if (day.locked) return;
+  dbg('LOCK');
   day.locked = true;
   freezePage(journeyTop());
   journey.classList.add('is-playing');
@@ -443,17 +462,25 @@ jReplay.addEventListener('click', () => {
   film.restart();
 });
 
-if (reducedMotion) {
-  day.h = H1; renderDay(); day.watched = true; jReplay.hidden = false;
-  eventsEl.forEach((ev) => ev.classList.add('is-active'));
-} else {
-  // engage when the section's top is reached (or passed) while moving down
+{ // the film plays for everyone (also with iOS "Reduce Motion"; it is a gentle colour/position change)
+  const canLock = () => opened && !day.watched && !day.locked && performance.now() > day.noRelockUntil && document.body.style.position !== 'fixed';
+  // trigger 1: scroll events — engage when the section's top is reached (or passed) moving down
   addEventListener('scroll', () => {
     if (document.body.style.position === 'fixed') return;
     const y = window.scrollY;
-    if (opened && !day.watched && !day.locked && performance.now() > day.noRelockUntil && y >= journeyTop() - 2 && y > day.prevY) lockDay();
+    // start as soon as the section is mostly on screen (top within the upper 15%), then snap it into place
+    if (canLock() && y >= journeyTop() - innerHeight * 0.15 && y > day.prevY) lockDay();
     day.prevY = window.scrollY;
+    dbg('scroll');
   }, { passive: true });
+  // trigger 2: IntersectionObserver — iOS can coalesce scroll events during a fast flick, IO still reports
+  // when the section's top crosses the top edge of the viewport
+  new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      dbg('io ' + Math.round(e.boundingClientRect.top));
+      if (canLock() && e.boundingClientRect.top <= innerHeight * 0.15 && e.boundingClientRect.bottom > innerHeight * 0.5) lockDay();
+    }
+  }, { threshold: [0, 0.25, 0.5, 0.75, 0.9, 1] }).observe(journey);
 
   // while locked: block downward input, let upward input escape
   addEventListener('wheel', (e) => {
