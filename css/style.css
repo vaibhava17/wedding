@@ -318,6 +318,8 @@ html[data-lang="en"] .pk-sanskar { font-size: 1.3em; }
 .pw-note.is-active { opacity: 1; }
 .pw-venue { font-size: .95rem; }
 .pw-venue b { color: #c8102e; }
+.pw-map { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; padding: 2px 10px; border-radius: 999px; background: #c8102e; color: #fffdf2; font-weight: 700; font-size: .85rem; text-decoration: none; white-space: nowrap; vertical-align: middle; }
+.pw-map svg { width: 14px; height: 14px; }
 .btn-green { background: #2f8a3a; color: #fffdf2; box-shadow: 0 5px 0 #1e5c24; min-height: 46px; }
 @media (min-width: 900px) {
   .pw-stage { grid-template-columns: 1.4fr 1fr; grid-template-rows: auto 1fr; column-gap: 20px; padding-left: var(--pad); padding-right: var(--pad); }

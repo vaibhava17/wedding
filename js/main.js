@@ -543,13 +543,46 @@ if (FULL) {
   function goPhase(i) {
     const to = i / 2, dist = Math.abs(to - pre.p);
     pwTabs.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
-    if (dist < 0.001) return;
-    gsap.to(pre, {
-      p: to, duration: reducedMotion ? 0 : 0.5 + dist * 1.2, ease: 'power2.inOut', overwrite: true,
-      onUpdate: () => setPre(pre.p),
-    });
+    if (dist < 0.001) return 0;
+    const dur = reducedMotion ? 0 : 0.5 + dist * 1.2;
+    gsap.to(pre, { p: to, duration: dur, ease: 'power2.inOut', overwrite: true, onUpdate: () => setPre(pre.p) });
+    return dur;
   }
-  pwTabs.forEach((b) => b.addEventListener('click', () => { const i = Number(b.dataset.phase); goPhase(i); if (i === 0) drawTilak(0.5); }));
+  // auto-advance: Tilkotsav → Haldi → Mehndi → … every 1.5 s of rest, only while the section is on screen.
+  // A tap takes over; auto-play resumes after a few quiet seconds.
+  const AUTO = { HOLD_MS: 1500, RESUME_MS: 5000 };
+  let autoIdx = 0, autoTimer = null, pwVisible = false, userUntil = 0;
+  function scheduleAuto(delay = AUTO.HOLD_MS) {
+    clearTimeout(autoTimer);
+    if (reducedMotion || !pwVisible) return;
+    autoTimer = setTimeout(() => {
+      if (!pwVisible) return;
+      if (performance.now() < userUntil) { scheduleAuto(userUntil - performance.now()); return; }
+      autoIdx = (autoIdx + 1) % 3;
+      let d;
+      if (autoIdx === 0) { // wrap Mehndi → Tilkotsav with a clean fade instead of passing back through Haldi
+        d = 0.8;
+        const scenes = $('.pw-scenes');
+        gsap.timeline()
+          .to(scenes, { opacity: 0, duration: 0.35, ease: 'power1.in' })
+          .add(() => { gsap.killTweensOf(pre); pre.p = 0; setPre(0); pwTabs.forEach((b, j) => b.setAttribute('aria-pressed', String(j === 0))); })
+          .to(scenes, { opacity: 1, duration: 0.45, ease: 'power1.out' });
+        drawTilak(0.5);
+      } else d = goPhase(autoIdx);
+      scheduleAuto(d * 1000 + AUTO.HOLD_MS); // wait for the transition, then rest 1.5 s
+    }, delay);
+  }
+  pwTabs.forEach((b) => b.addEventListener('click', () => {
+    const i = Number(b.dataset.phase);
+    autoIdx = i;
+    userUntil = performance.now() + AUTO.RESUME_MS;
+    goPhase(i); if (i === 0) drawTilak(0.5);
+    scheduleAuto(AUTO.RESUME_MS);
+  }));
+  new IntersectionObserver(([e]) => {
+    pwVisible = e.isIntersecting && e.intersectionRatio > 0.4;
+    if (pwVisible) scheduleAuto(AUTO.HOLD_MS + 600); else clearTimeout(autoTimer);
+  }, { threshold: [0, 0.4, 0.6] }).observe(pw);
 
   // the tilak is applied on its own: when the section comes into view, and whenever Tilkotsav is chosen
   const groom = pw.querySelector('[data-scene="tilak"] .groom');
@@ -622,10 +655,7 @@ if (!reducedMotion) {
   drawDrapes(1);
 }
 
-// "Open in Maps": Apple Maps on iPhone/Mac, Google Maps everywhere else
-if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) {
-  $('#mapsBtn').href = 'https://maps.apple.com/?q=' + encodeURIComponent('Hotel Sita Kiran') + '&address=' + encodeURIComponent('Civil Lines, Bareilly, Uttar Pradesh');
-}
+// "Open in Maps" uses the family's exact Google Maps pin for every device (see index.html)
 
 // ---------- finale (pinned) ----------
 // Phase 1: the baraat walks up to the bride at the haveli.
